@@ -1,0 +1,6 @@
+@dotnet_postgresql_crud_HostAddress = http://localhost:5135
+
+GET {{dotnet_postgresql_crud_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
