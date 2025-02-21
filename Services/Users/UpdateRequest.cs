@@ -1,14 +1,17 @@
 using System.ComponentModel.DataAnnotations;
-
-namespace WebApi.Models.Users;
-
 public class UpdateRequest
 {
-    public string FirstName { get; set; }
-    public string LastName { get; set; }
+    required
+    public string FirstName
+    { get; set; }
+    required
+    public string LastName
+    { get; set; }
 
     [EmailAddress]
-    public string Email { get; set; }
+    required
+    public string Email
+    { get; set; }
     public Byte[]? PhotoUrl { get; set; }
 
 
