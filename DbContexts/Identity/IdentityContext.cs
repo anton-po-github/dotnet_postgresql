@@ -1,8 +1,9 @@
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
-public class AppIdentityDbContext : IdentityDbContext<AppUser>
+
+public class IdentityContext : IdentityDbContext<AppUser>
 {
-    public AppIdentityDbContext(DbContextOptions<AppIdentityDbContext> options) : base(options)
+    public IdentityContext(DbContextOptions<IdentityContext> options) : base(options)
     {
     }
 

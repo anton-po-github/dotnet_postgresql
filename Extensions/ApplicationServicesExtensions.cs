@@ -4,12 +4,12 @@ public static class ApplicationServicesExtensions
     public static IServiceCollection AddApplicationServices(this IServiceCollection services, IConfiguration config)
     {
 
-        services.AddDbContext<AppIdentityDbContext>(x =>
+        services.AddDbContext<IdentityContext>(x =>
         {
             x.UseNpgsql(config.GetConnectionString("IdentityConnection"));
         });
 
-        services.AddDbContext<DataContext>(x =>
+        services.AddDbContext<UsersContext>(x =>
         {
             x.UseNpgsql(config.GetConnectionString("DefaultConnection"));
         });

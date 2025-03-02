@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Identity;
-public class AppIdentityDbContextSeed
+
+public class IdentityContextSeed
 {
     public static async Task SeedUsersAsync(UserManager<AppUser> userManager)
     {

@@ -30,9 +30,9 @@ var app = builder.Build();
 
 using var scope = app.Services.CreateScope();
 var serviceProvider = scope.ServiceProvider;
-var context = serviceProvider.GetRequiredService<DataContext>();
+var context = serviceProvider.GetRequiredService<UsersContext>();
 var loggerFactory = serviceProvider.GetRequiredService<ILoggerFactory>();
-var identityContext = serviceProvider.GetRequiredService<AppIdentityDbContext>();
+var identityContext = serviceProvider.GetRequiredService<IdentityContext>();
 var userManager = serviceProvider.GetRequiredService<UserManager<AppUser>>();
 var logger = serviceProvider.GetRequiredService<ILogger<Program>>();
 try
@@ -42,7 +42,7 @@ try
 
     await identityContext.Database.MigrateAsync();
     //await StoreContextSeed.SeedAsync(context);
-    await AppIdentityDbContextSeed.SeedUsersAsync(userManager);
+    await IdentityContextSeed.SeedUsersAsync(userManager);
 }
 catch (Exception ex)
 {

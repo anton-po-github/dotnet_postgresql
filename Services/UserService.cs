@@ -2,11 +2,11 @@
 
 public class UserService
 {
-    private DataContext _context;
+    private UsersContext _context;
     private readonly IMapper _mapper;
 
     public UserService(
-        DataContext context,
+        UsersContext context,
         IMapper mapper)
     {
         _context = context;
@@ -15,7 +15,7 @@ public class UserService
 
     public IEnumerable<User> GetAll()
     {
-        return _context.users;
+        return _context.Users;
     }
 
     public User GetById(int id)
@@ -26,14 +26,16 @@ public class UserService
     public void Create(CreateRequest model)
     {
         // validate
-        if (_context.users.Any(x => x.Email == model.Email))
+        if (_context.Users.Any(x => x.Email == model.Email))
             throw new AppException("User with the email '" + model.Email + "' already exists");
 
         // map model to new user object
         var user = _mapper.Map<User>(model);
 
+        user.Phone = "some_phone_here";
+
         // save user
-        _context.users.Add(user);
+        _context.Users.Add(user);
         _context.SaveChanges();
     }
 
@@ -42,19 +44,20 @@ public class UserService
         var user = getUser(id);
 
         // validate
-        if (model.Email != user.Email && _context.users.Any(x => x.Email == model.Email))
+        if (model.Email != user.Email && _context.Users.Any(x => x.Email == model.Email))
             throw new AppException("User with the email '" + model.Email + "' already exists");
 
+        user.Phone = "updated_phone_here";
         // copy model to user and save
         _mapper.Map(model, user);
-        _context.users.Update(user);
+        _context.Users.Update(user);
         _context.SaveChanges();
     }
 
     public void Delete(int id)
     {
         var user = getUser(id);
-        _context.users.Remove(user);
+        _context.Users.Remove(user);
         _context.SaveChanges();
     }
 
@@ -62,7 +65,7 @@ public class UserService
 
     private User getUser(int id)
     {
-        var user = _context.users.Find(id);
+        var user = _context.Users.Find(id);
         if (user == null) throw new KeyNotFoundException("User not found");
         return user;
     }

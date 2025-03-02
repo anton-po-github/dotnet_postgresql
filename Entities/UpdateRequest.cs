@@ -1,10 +1,10 @@
 using System.ComponentModel.DataAnnotations;
-public class CreateRequest
+
+public class UpdateRequest
 {
     required
     public string FirstName
     { get; set; }
-
     required
     public string LastName
     { get; set; }
@@ -15,4 +15,9 @@ public class CreateRequest
     { get; set; }
     public Byte[]? PhotoUrl { get; set; }
 
+
+    private string replaceEmptyWithNull(string value)
+    {
+        return string.IsNullOrEmpty(value) ? null : value;
+    }
 }
