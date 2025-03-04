@@ -11,7 +11,7 @@ public static class ApplicationServicesExtensions
 
         services.AddDbContext<UsersContext>(x =>
         {
-            x.UseNpgsql(config.GetConnectionString("DefaultConnection"));
+            x.UseNpgsql(config.GetConnectionString("UsersConnection"));
         });
 
         services.AddScoped<TokenService>();

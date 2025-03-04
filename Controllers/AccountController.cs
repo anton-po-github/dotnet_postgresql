@@ -77,6 +77,9 @@ public class AccountController : ControllerBase
             UserName = registerDto.Email
         };
 
+        if (_userManager.Users.Any(x => x.Email == registerDto.Email))
+            throw new AppException("User with the email '" + registerDto.Email + "' already exists");
+
         var result = await _userManager.CreateAsync(user, registerDto.Password);
 
         if (!result.Succeeded) return BadRequest(new ApiResponse(400));

@@ -11,7 +11,7 @@ public class UsersContext : DbContext
 
     protected override void OnConfiguring(DbContextOptionsBuilder options)
     {
-        options.UseNpgsql(_config.GetConnectionString("DefaultConnection"));
+        options.UseNpgsql(_config.GetConnectionString("UsersConnection"));
     }
 
     public DbSet<User> Users { get; set; }
