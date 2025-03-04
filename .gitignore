@@ -3,7 +3,7 @@ obj/
 
 appsettings.json
 *.db
-
+.azure/
 
 # client side
 # See http://help.github.com/ignore-files/ for more about ignoring files.
@@ -29,7 +29,7 @@ yarn-error.log
 *.sublime-workspace
 
 # Visual Studio Code
-.vscode/*
+.vscode/
 !.vscode/settings.json
 !.vscode/tasks.json
 !.vscode/launch.json
