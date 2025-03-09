@@ -11,9 +11,9 @@ public class AzureStorageController : Controller
     {
         _blobService = blobService;
 
-        _connectionString = config["MyConfig:StorageConnection"];
+        _connectionString = config["AzureStorageConfig:StorageConnection"];
 
-        _container = config["MyConfig:ContainerName"];
+        _container = config["AzureStorageConfig:ContainerName"];
     }
 
     [HttpGet("ListFiles")]
