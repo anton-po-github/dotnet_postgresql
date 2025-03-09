@@ -16,6 +16,7 @@ public static class ApplicationServicesExtensions
 
         services.AddScoped<TokenService>();
         services.AddScoped<UserService>();
+        services.AddScoped<IBlobService, BlobService>();
 
         return services;
     }

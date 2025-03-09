@@ -1,4 +1,5 @@
-﻿using AutoMapper;
+﻿using System.Text.Json;
+using AutoMapper;
 
 public class UserService
 {
@@ -33,6 +34,14 @@ public class UserService
         var user = _mapper.Map<User>(model);
 
         user.Phone = "some_phone_here";
+
+        var userDetails = new UsersDetails
+        {
+            Role = "User",
+            Salary = 1000
+        };
+
+        user.Details = JsonSerializer.Serialize(userDetails);
 
         // save user
         _context.Users.Add(user);

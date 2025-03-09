@@ -1,14 +1,18 @@
 
+using System.ComponentModel.DataAnnotations.Schema;
 using Microsoft.AspNetCore.Identity;
 
 public class User
 {
     public int Id { get; set; }
-    public string FirstName { get; set; }
-    public string Phone { get; set; }
-    public string LastName { get; set; }
-    public string Email { get; set; }
+    public string? FirstName { get; set; }
+    public string? Phone { get; set; }
+    public string? LastName { get; set; }
+    public string? Email { get; set; }
     public Byte[]? PhotoUrl { get; set; }
+
+    [Column(TypeName = "jsonb")]
+    public string? Details { get; set; }
 }
 public class AppUser : IdentityUser
 {
