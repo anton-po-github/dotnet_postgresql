@@ -14,41 +14,26 @@ public class User
     [Column(TypeName = "jsonb")]
     public string? Details { get; set; }
 }
+
 public class AppUser : IdentityUser
 {
-    public string DisplayName { get; set; }
 }
+
 public class LoginDto
 {
-    required
-    public string Email
-    { get; set; }
-    required
-    public string Password
-    { get; set; }
+    public string Email { get; set; }
+    public string Password { get; set; }
 }
 public class RegisterDto
 {
-    required
-    public string DisplayName
-    { get; set; }
-    required
-    public string Email
-    { get; set; }
-    required
-    public string Password
-    { get; set; }
+    public string UserName { get; set; }
+    public string Email { get; set; }
+    public string Password { get; set; }
 }
 
 public class UserDto
 {
-    required
-    public string Email
-    { get; set; }
-    required
-    public string DisplayName
-    { get; set; }
-    required
-    public string Token
-    { get; set; }
+    public string Email { get; set; }
+    public string UserName { get; set; }
+    public string Token { get; set; }
 }

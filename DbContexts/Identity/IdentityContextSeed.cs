@@ -8,9 +8,8 @@ public class IdentityContextSeed
         {
             var user = new AppUser
             {
-                DisplayName = "Bob",
                 Email = "bob@test.com",
-                UserName = "bob@test.com",
+                UserName = "Bob",
 
             };
 

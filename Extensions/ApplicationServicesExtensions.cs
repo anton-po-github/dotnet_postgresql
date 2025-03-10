@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 public static class ApplicationServicesExtensions
 {
@@ -14,6 +15,11 @@ public static class ApplicationServicesExtensions
             x.UseNpgsql(config.GetConnectionString("UsersConnection"));
         });
 
+        services.AddIdentity<AppUser, IdentityRole>(o => o.SignIn.RequireConfirmedEmail = true)
+        .AddEntityFrameworkStores<IdentityContext>()
+        .AddDefaultTokenProviders();
+
+        services.AddScoped<EmailService>();
         services.AddScoped<TokenService>();
         services.AddScoped<UserService>();
         services.AddScoped<IBlobService, BlobService>();
