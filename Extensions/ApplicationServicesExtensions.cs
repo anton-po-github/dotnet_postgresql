@@ -1,4 +1,3 @@
-using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 public static class ApplicationServicesExtensions
 {
@@ -15,14 +14,19 @@ public static class ApplicationServicesExtensions
             x.UseNpgsql(config.GetConnectionString("UsersConnection"));
         });
 
-        services.AddIdentity<AppUser, IdentityRole>(o => o.SignIn.RequireConfirmedEmail = true)
-        .AddEntityFrameworkStores<IdentityContext>()
-        .AddDefaultTokenProviders();
-
         services.AddScoped<EmailService>();
         services.AddScoped<TokenService>();
         services.AddScoped<UserService>();
         services.AddScoped<IBlobService, BlobService>();
+
+        services.AddCors(opt =>
+          {
+              opt.AddPolicy("CorsPolicy", policy =>
+              {
+                  policy.AllowAnyHeader().AllowAnyMethod().WithOrigins("http://localhost:4200");
+                  // policy.WithOrigins("http://localhost:4200").AllowAnyHeader().AllowAnyOrigin().AllowAnyMethod().AllowAnyOrigin();
+              });
+          });
 
         return services;
     }

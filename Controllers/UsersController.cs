@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 [ApiController]
@@ -16,6 +17,7 @@ public class UsersController : ControllerBase
         _mapper = mapper;
     }
 
+    [Authorize]
     [HttpGet]
     public IActionResult GetAll()
     {

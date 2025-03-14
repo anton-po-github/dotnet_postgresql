@@ -43,6 +43,7 @@ public class AccountController : ControllerBase
             UserName = user.UserName
         };
     }
+
     [Authorize]
     [HttpGet("all")]
     public async Task<ActionResult<List<AppUser>>> GetAllUsers()
@@ -62,12 +63,11 @@ public class AccountController : ControllerBase
         var user = await _userManager.FindByEmailAsync(loginDto.Email);
         if (user == null) return Unauthorized(new ApiResponse(401));
 
-        var confirmedEmail = await _userManager.IsEmailConfirmedAsync(user);
-        if (!confirmedEmail) return BadRequest("Email not confirmed.");
-
-        //var result = await _signInManager.CheckPasswordSignInAsync(user, loginDto.Password, false);
-        var result = await _signInManager.PasswordSignInAsync(user, loginDto.Password, false, false);
+        var result = await _signInManager.CheckPasswordSignInAsync(user, loginDto.Password, false);
         if (!result.Succeeded) return Unauthorized(new ApiResponse(401));
+
+        var isEmailConfirmed = await _userManager.IsEmailConfirmedAsync(user);
+        if (!isEmailConfirmed) throw new AppException("Email is not Confirmed");
 
         return new UserDto
         {
@@ -82,8 +82,8 @@ public class AccountController : ControllerBase
     {
         var user = new AppUser
         {
-            UserName = registerDto.UserName,
             Email = registerDto.Email,
+            UserName = registerDto.UserName
         };
 
         if (_userManager.Users.Any(x => x.Email == registerDto.Email))
@@ -93,12 +93,7 @@ public class AccountController : ControllerBase
 
         if (!result.Succeeded) return BadRequest(new ApiResponse(400));
 
-        var token = await _userManager.GenerateEmailConfirmationTokenAsync(user);
-
-        var code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(token));
-
-
-        var confirmLink = $"http://localhost:5135/api/account/confirm-email?email={user.Email}&code={code}";
+        var confirmLink = $"http://localhost:5135/api/account/confirm-email?email={user.Email}";
 
         var textEmail = @"
         Hello.
@@ -111,7 +106,6 @@ public class AccountController : ControllerBase
         Regards
         ";
 
-
         await _emailService.SendEmailConfirmation(user.Email, textEmail);
 
         return new UserDto
@@ -123,17 +117,16 @@ public class AccountController : ControllerBase
     }
 
     [HttpGet("confirm-email")]
-    public async Task<IResult> ConfirmEmail([FromQuery] string email, string code, UserManager<AppUser> userManager)
+    public async Task<IResult> ConfirmEmail([FromQuery] string email)
     {
-        var user = await userManager.FindByEmailAsync(email);
-
+        var user = await _userManager.FindByEmailAsync(email);
         if (user is null) return Results.NotFound("User not found.");
 
-        var token = Encoding.UTF8.GetString(WebEncoders.Base64UrlDecode(code));
+        user.EmailConfirmed = true;
 
-        var result = await userManager.ConfirmEmailAsync(user, token);
+        await _userManager.UpdateAsync(user);
 
-        return result.Succeeded ? Results.Ok("Confirmed!") : Results.BadRequest(result.Errors);
+        return Results.Ok("Confirmed!");
     }
 
     [HttpDelete("{id}")]
