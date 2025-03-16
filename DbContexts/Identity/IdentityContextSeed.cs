@@ -2,11 +2,11 @@ using Microsoft.AspNetCore.Identity;
 
 public class IdentityContextSeed
 {
-    public static async Task SeedUsersAsync(UserManager<AppUser> userManager)
+    public static async Task SeedUsersAsync(UserManager<IdentityUser> userManager)
     {
         if (!userManager.Users.Any())
         {
-            var user = new AppUser
+            var user = new IdentityUser
             {
                 Email = "bob@test.com",
                 UserName = "Bob",

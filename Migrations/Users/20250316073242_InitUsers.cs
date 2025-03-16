@@ -3,10 +3,10 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 #nullable disable
 
-namespace dotnet_postgresql_crud.Migrations.Users
+namespace dotnet_postgresql.Migrations.Users
 {
     /// <inheritdoc />
-    public partial class Users : Migration
+    public partial class InitUsers : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -17,10 +17,12 @@ namespace dotnet_postgresql_crud.Migrations.Users
                 {
                     Id = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    FirstName = table.Column<string>(type: "text", nullable: false),
-                    LastName = table.Column<string>(type: "text", nullable: false),
-                    Email = table.Column<string>(type: "text", nullable: false),
-                    PhotoUrl = table.Column<byte[]>(type: "bytea", nullable: true)
+                    FirstName = table.Column<string>(type: "text", nullable: true),
+                    Phone = table.Column<string>(type: "text", nullable: true),
+                    LastName = table.Column<string>(type: "text", nullable: true),
+                    Email = table.Column<string>(type: "text", nullable: true),
+                    PhotoUrl = table.Column<byte[]>(type: "bytea", nullable: true),
+                    Details = table.Column<string>(type: "jsonb", nullable: true)
                 },
                 constraints: table =>
                 {

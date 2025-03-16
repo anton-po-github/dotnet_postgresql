@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore;
 
 public static class UserManagerExtensions
 {
-    public static async Task<AppUser> FindByEmailFromClaimsPrinciple(this UserManager<AppUser> input, ClaimsPrincipal user)
+    public static async Task<IdentityUser> FindByEmailFromClaimsPrinciple(this UserManager<IdentityUser> input, ClaimsPrincipal user)
     {
         var email = user.FindFirstValue(ClaimTypes.Email);
 

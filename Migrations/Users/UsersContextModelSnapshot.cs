@@ -6,7 +6,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 #nullable disable
 
-namespace dotnet_postgresql_crud.Migrations.Users
+namespace dotnet_postgresql.Migrations.Users
 {
     [DbContext(typeof(UsersContext))]
     partial class UsersContextModelSnapshot : ModelSnapshot

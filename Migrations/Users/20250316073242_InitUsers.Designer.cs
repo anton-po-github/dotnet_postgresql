@@ -7,11 +7,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 #nullable disable
 
-namespace dotnet_postgresql_crud.Migrations.Users
+namespace dotnet_postgresql.Migrations.Users
 {
     [DbContext(typeof(UsersContext))]
-    [Migration("20250304192919_AddDetailsUsers")]
-    partial class AddDetailsUsers
+    [Migration("20250316073242_InitUsers")]
+    partial class InitUsers
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)

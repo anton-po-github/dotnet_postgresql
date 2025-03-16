@@ -7,11 +7,11 @@ public static class IdentityServicesExtensions
 {
     public static IServiceCollection AddIdentityServices(this IServiceCollection services, IConfiguration config)
     {
-        var builder = services.AddIdentityCore<AppUser>();
+        var builder = services.AddIdentityCore<IdentityUser>();
 
         builder = new IdentityBuilder(builder.UserType, builder.Services);
         builder.AddEntityFrameworkStores<IdentityContext>();
-        builder.AddSignInManager<SignInManager<AppUser>>();
+        builder.AddSignInManager<SignInManager<IdentityUser>>();
 
         services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             .AddJwtBearer(opt =>

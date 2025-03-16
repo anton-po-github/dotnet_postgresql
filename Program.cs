@@ -1,8 +1,8 @@
-using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
+
 
 var services = builder.Services;
 var env = builder.Environment;
@@ -10,17 +10,9 @@ var env = builder.Environment;
 services.AddSwaggerGen();
 
 services.AddApplicationServices(builder.Configuration);
+
 services.AddIdentityServices(builder.Configuration);
 
-//services.AddCors();
-services.AddControllers().AddJsonOptions(x =>
-{
-    // serialize enums as strings in api responses (e.g. Role)
-    x.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
-
-    // ignore omitted parameters on models to enable optional params (e.g. User update)
-    x.JsonSerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
-});
 services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 
 var app = builder.Build();
@@ -31,19 +23,14 @@ app.UseStatusCodePagesWithReExecute("/errors/{0}");
 
 app.UseHttpsRedirection();
 
-app.UseCors("CorsPolicy");
-
-app.UseAuthentication();
-app.UseAuthorization();
-
-app.MapControllers();
+//app.UseCors("CorsPolicy");
 
 using var scope = app.Services.CreateScope();
 var serviceProvider = scope.ServiceProvider;
 var context = serviceProvider.GetRequiredService<UsersContext>();
 var loggerFactory = serviceProvider.GetRequiredService<ILoggerFactory>();
 var identityContext = serviceProvider.GetRequiredService<IdentityContext>();
-var userManager = serviceProvider.GetRequiredService<UserManager<AppUser>>();
+var userManager = serviceProvider.GetRequiredService<UserManager<IdentityUser>>();
 var logger = serviceProvider.GetRequiredService<ILogger<Program>>();
 try
 {
@@ -58,5 +45,29 @@ catch (Exception ex)
 {
     logger.LogError(ex, "An error occured during migration");
 }
+
+
+// global cors policy
+
+// Configure the HTTP request pipeline.
+if (app.Environment.IsDevelopment())
+{
+    app.UseSwagger();
+    app.UseSwaggerUI();
+}
+
+app.UseCors(x => x
+    .AllowAnyOrigin()
+    .AllowAnyMethod()
+    .AllowAnyHeader());
+
+// global error handler
+app.UseMiddleware<ErrorHandlerMiddleware>();
+
+app.MapControllers();
+
+// UseAuthentication & UseAuthorization must comment, otherwise [Authorize] will cause 404s
+//app.UseAuthentication();
+//app.UseAuthorization();
 
 app.Run();

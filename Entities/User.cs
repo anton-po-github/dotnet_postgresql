@@ -1,6 +1,5 @@
 
 using System.ComponentModel.DataAnnotations.Schema;
-using Microsoft.AspNetCore.Identity;
 
 public class User
 {
@@ -15,7 +14,7 @@ public class User
     public string? Details { get; set; }
 }
 
-public class AppUser : IdentityUser
+public class IdentityUser : Microsoft.AspNetCore.Identity.IdentityUser
 {
 }
 

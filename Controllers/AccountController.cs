@@ -1,28 +1,24 @@
-using System.Text;
 using AutoMapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.EntityFrameworkCore;
 
 [ApiController]
 [Route("api/[controller]")]
 public class AccountController : ControllerBase
 {
-    private readonly UserManager<AppUser> _userManager;
-    private readonly SignInManager<AppUser> _signInManager;
+    private readonly UserManager<IdentityUser> _userManager;
+    private readonly SignInManager<IdentityUser> _signInManager;
     private readonly TokenService _tokenService;
-    private readonly IMapper _mapper;
     private readonly EmailService _emailService;
     public AccountController(
-        UserManager<AppUser> userManager,
-        SignInManager<AppUser> signInManager,
+        UserManager<IdentityUser> userManager,
+        SignInManager<IdentityUser> signInManager,
         TokenService tokenService,
         EmailService emailService,
         IMapper mapper)
     {
-        _mapper = mapper;
         _tokenService = tokenService;
         _emailService = emailService;
         _signInManager = signInManager;
@@ -46,7 +42,7 @@ public class AccountController : ControllerBase
 
     [Authorize]
     [HttpGet("all")]
-    public async Task<ActionResult<List<AppUser>>> GetAllUsers()
+    public async Task<ActionResult<List<IdentityUser>>> GetAllUsers()
     {
         return await _userManager.Users.ToListAsync();
     }
@@ -80,7 +76,7 @@ public class AccountController : ControllerBase
     [HttpPost("register")]
     public async Task<ActionResult<UserDto>> Register(RegisterDto registerDto)
     {
-        var user = new AppUser
+        var user = new IdentityUser
         {
             Email = registerDto.Email,
             UserName = registerDto.UserName

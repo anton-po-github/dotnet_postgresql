@@ -1,14 +1,23 @@
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
-public class IdentityContext : IdentityDbContext<AppUser>
+public class IdentityContext : IdentityDbContext<IdentityUser>
 {
-    public IdentityContext(DbContextOptions<IdentityContext> options) : base(options)
+    protected readonly IConfiguration _config;
+    public IdentityContext(DbContextOptions<IdentityContext> options, IConfiguration configuration) : base(options)
     {
+        _config = configuration;
     }
 
-    protected override void OnModelCreating(ModelBuilder builder)
+    protected override void OnConfiguring(DbContextOptionsBuilder options)
     {
-        base.OnModelCreating(builder);
+        options.UseNpgsql(_config.GetConnectionString("IdentityConnection"));
     }
+
+    public DbSet<IdentityUser> Identity { get; set; }
+
+    /*  protected override void OnModelCreating(ModelBuilder builder)
+     {
+         base.OnModelCreating(builder);
+     } */
 }
