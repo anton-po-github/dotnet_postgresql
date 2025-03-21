@@ -18,6 +18,7 @@ public static class ApplicationServicesExtensions
         services.AddScoped<TokenService>();
         services.AddScoped<UserService>();
         services.AddScoped<IBlobService, BlobService>();
+        services.AddScoped(typeof(IGenericService<>), (typeof(GenericService<>)));
 
         services.AddCors();
 

@@ -4,9 +4,9 @@ using Microsoft.EntityFrameworkCore;
 public class IdentityContext : IdentityDbContext<IdentityUser>
 {
     protected readonly IConfiguration _config;
-    public IdentityContext(DbContextOptions<IdentityContext> options, IConfiguration configuration) : base(options)
+    public IdentityContext(DbContextOptions<IdentityContext> options, IConfiguration config) : base(options)
     {
-        _config = configuration;
+        _config = config;
     }
 
     protected override void OnConfiguring(DbContextOptionsBuilder options)
@@ -15,9 +15,4 @@ public class IdentityContext : IdentityDbContext<IdentityUser>
     }
 
     public DbSet<IdentityUser> Identity { get; set; }
-
-    /*  protected override void OnModelCreating(ModelBuilder builder)
-     {
-         base.OnModelCreating(builder);
-     } */
 }

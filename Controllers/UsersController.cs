@@ -9,21 +9,42 @@ public class UsersController : ControllerBase
     private UserService _userService;
     private IMapper _mapper;
 
+    private readonly IGenericService<User> _usersGenericService;
+
     public UsersController(
         UserService userService,
+        IGenericService<User> usersGenericService,
         IMapper mapper)
     {
+        _usersGenericService = usersGenericService;
         _userService = userService;
         _mapper = mapper;
     }
 
     [Authorize]
     [HttpGet]
-    public IActionResult GetAll()
+    public async Task<ActionResult<Pagination<User>>> GetUsers([FromQuery] UserSpecParams userSpecParams)
     {
-        var users = _userService.GetAll();
-        return Ok(users);
+        var spec = new UsersParamsSpec(userSpecParams);
+
+        var countSpec = new UsersParamsCountSpec(userSpecParams);
+
+        var countItems = await _usersGenericService.CountAsync(countSpec);
+
+        var users = await _usersGenericService.ListAsync(spec);
+
+        // var data = _mapper.Map<IReadOnlyList<User>, IReadOnlyList<UserToReturnPagDto>>(products);
+
+        return Ok(new Pagination<User>(userSpecParams.PageIndex, userSpecParams.PageSize, countItems, users));
     }
+
+    /*    [Authorize]
+       [HttpGet]
+       public IActionResult GetAll()
+       {
+           var users = _userService.GetAll();
+           return Ok(users);
+       } */
 
     [HttpGet("{id}")]
     public IActionResult GetById(int id)

@@ -89,7 +89,7 @@ public class AccountController : ControllerBase
 
         if (!result.Succeeded) return BadRequest(new ApiResponse(400));
 
-        var confirmLink = $"http://localhost:5135/api/account/confirm-email?email={user.Email}";
+        var confirmLink = $"http://localhost:5477/api/account/confirm-email?email={user.Email}";
 
         var textEmail = @"
         Hello.

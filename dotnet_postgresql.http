@@ -1,4 +1,4 @@
-@dotnet_postgresql_HostAddress = http://localhost:5135
+@dotnet_postgresql_HostAddress = http://localhost:5477
 
 GET {{dotnet_postgresql_HostAddress}}/weatherforecast/
 Accept: application/json
