@@ -59,7 +59,9 @@ public class UserService
         user.Phone = "updated_phone_here";
         // copy model to user and save
         _mapper.Map(model, user);
+
         _userContext.Users.Update(user);
+
         _userContext.SaveChanges();
     }
 
