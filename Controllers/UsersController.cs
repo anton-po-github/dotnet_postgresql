@@ -21,7 +21,7 @@ public class UsersController : ControllerBase
         _mapper = mapper;
     }
 
-    [Authorize]
+    [Authorize(Roles = "User")]
     [HttpGet]
     public async Task<ActionResult<Pagination<User>>> GetUsers([FromQuery] UserSpecParams userSpecParams)
     {
@@ -38,13 +38,6 @@ public class UsersController : ControllerBase
         return Ok(new Pagination<User>(userSpecParams.PageIndex, userSpecParams.PageSize, countItems, users));
     }
 
-    /*    [Authorize]
-       [HttpGet]
-       public IActionResult GetAll()
-       {
-           var users = _userService.GetAll();
-           return Ok(users);
-       } */
 
     [HttpGet("{id}")]
     public IActionResult GetById(int id)

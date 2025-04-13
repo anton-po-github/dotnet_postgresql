@@ -9,9 +9,11 @@ public static class IdentityServicesExtensions
     {
         var builder = services.AddIdentityCore<IdentityUser>();
 
-        builder = new IdentityBuilder(builder.UserType, builder.Services);
+        builder = new IdentityBuilder(typeof(IdentityUser), typeof(IdentityRole), services);
         builder.AddEntityFrameworkStores<IdentityContext>();
         builder.AddSignInManager<SignInManager<IdentityUser>>();
+        builder.AddRoleManager<RoleManager<IdentityRole>>();
+        builder.AddRoles<IdentityRole>();
 
         services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             .AddJwtBearer(opt =>

@@ -13,9 +13,6 @@ public class User : BaseEntity
     public string? Details { get; set; }
 }
 
-public class IdentityUser : Microsoft.AspNetCore.Identity.IdentityUser
-{
-}
 
 public class LoginDto
 {
@@ -34,4 +31,5 @@ public class UserDto
     public string Email { get; set; }
     public string UserName { get; set; }
     public string Token { get; set; }
+    public IList<string> Role { get; set; }
 }

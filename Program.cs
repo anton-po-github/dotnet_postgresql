@@ -3,7 +3,6 @@ using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
-
 var services = builder.Services;
 var env = builder.Environment;
 
@@ -24,6 +23,12 @@ app.UseStatusCodePagesWithReExecute("/errors/{0}");
 app.UseHttpsRedirection();
 
 //app.UseCors("CorsPolicy");
+
+using (var scopeRole = app.Services.CreateScope())
+{
+    await IdentitySeeder.SeedRolesAsync(scopeRole.ServiceProvider);
+}
+
 
 using var scope = app.Services.CreateScope();
 var serviceProvider = scope.ServiceProvider;
