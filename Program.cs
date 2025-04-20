@@ -9,6 +9,10 @@ var env = builder.Environment;
 services.AddSwaggerGen();
 
 services.AddApplicationServices(builder.Configuration);
+// Add SignalR services
+services.AddSignalR();
+
+services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 
 services.AddIdentityServices(builder.Configuration);
 
@@ -22,7 +26,7 @@ app.UseStatusCodePagesWithReExecute("/errors/{0}");
 
 app.UseHttpsRedirection();
 
-//app.UseCors("CorsPolicy");
+app.UseCors("CorsPolicy");
 
 using (var scopeRole = app.Services.CreateScope())
 {
@@ -61,10 +65,13 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-app.UseCors(x => x
+/* app.UseCors(x => x
     .AllowAnyOrigin()
     .AllowAnyMethod()
-    .AllowAnyHeader());
+    .AllowAnyHeader()); */
+
+// Map SignalR hubs
+app.MapHub<ChatHub>("/hubs/chat");
 
 // global error handler
 app.UseMiddleware<ErrorHandlerMiddleware>();

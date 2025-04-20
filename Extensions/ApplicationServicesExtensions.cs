@@ -19,6 +19,11 @@ public static class ApplicationServicesExtensions
             x.UseNpgsql(config.GetConnectionString("PostgresConnection"));
         });
 
+        services.AddDbContext<ChatMessageContext>(x =>
+        {
+            x.UseNpgsql(config.GetConnectionString("ChatMessageConnection"));
+        });
+
         services.AddScoped<EmailService>();
         services.AddScoped<TokenService>();
         services.AddScoped<UserService>();
@@ -28,14 +33,18 @@ public static class ApplicationServicesExtensions
 
         services.AddCors();
 
-        /*    services.AddCors(opt =>
+        services.AddCors(opt =>
+         {
+             opt.AddPolicy("CorsPolicy", policy =>
              {
-                 opt.AddPolicy("CorsPolicy", policy =>
-                 {
-                     policy.AllowAnyHeader().AllowAnyMethod().WithOrigins("http://localhost:4200");
-                     // policy.WithOrigins("http://localhost:4200").AllowAnyHeader().AllowAnyOrigin().AllowAnyMethod().AllowAnyOrigin();
-                 });
-             }); */
+                 policy.WithOrigins("http://localhost:4200")
+                 .AllowAnyHeader()
+                 .AllowAnyMethod()
+                 .AllowCredentials(); // <-- This is important!
+                                      //  policy.AllowAnyHeader().AllowAnyMethod().WithOrigins("http://localhost:4200");
+                                      // policy.WithOrigins("http://localhost:4200").AllowAnyHeader().AllowAnyOrigin().AllowAnyMethod().AllowAnyOrigin();
+             });
+         });
 
         services.AddControllers();
 
