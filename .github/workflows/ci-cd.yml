@@ -22,4 +22,4 @@ jobs:
           context: .
           push: true
           tags: |
-            ${ { secrets.DOCKERHUB_USERNAME } }/dotnet_postgresql:latest
+            ${ { secrets.DOCKERHUB_USERNAME } }/dotnet_postgresql:local
