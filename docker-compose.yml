@@ -5,9 +5,9 @@ services:
     ports:
       - "9090:80"
     environment:
-      - ConnectionStrings__DefaultConnection=${DEFAULT_CONNECTION}
+      - ASPNETCORE_URLS=http://*:80
   db:
-    image: postgres:15
+    image: postgres:15 
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
