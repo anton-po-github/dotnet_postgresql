@@ -54,8 +54,6 @@ catch (Exception ex)
 {
     logger.LogError(ex, "An error occured during migration");
 }
-
-
 // global cors policy
 
 // Configure the HTTP request pipeline.

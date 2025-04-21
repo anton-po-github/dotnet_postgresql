@@ -31,7 +31,7 @@ public static class ApplicationServicesExtensions
         services.AddScoped<IBlobService, BlobService>();
         services.AddScoped(typeof(IGenericService<>), (typeof(GenericService<>)));
 
-        services.AddCors();
+        // services.AddCors();
 
         services.AddCors(opt =>
          {

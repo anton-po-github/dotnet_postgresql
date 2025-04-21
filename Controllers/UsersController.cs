@@ -21,7 +21,7 @@ public class UsersController : ControllerBase
         _mapper = mapper;
     }
 
-    [Authorize(Roles = "User")]
+    [Authorize(Roles = "Admin")]
     [HttpGet]
     public async Task<ActionResult<Pagination<User>>> GetUsers([FromQuery] UserSpecParams userSpecParams)
     {
@@ -40,28 +40,33 @@ public class UsersController : ControllerBase
 
 
     [HttpGet("{id}")]
-    public IActionResult GetById(int id)
+    public IActionResult GetById(Guid id)
     {
         var user = _userService.GetById(id);
         return Ok(user);
     }
 
     [HttpPost]
-    public IActionResult Create(CreateRequest model)
+    //  public IActionResult Create(CreateRequest model)
+    public IActionResult Create([FromForm] AddUpdateUser addUser)
     {
-        _userService.Create(model);
+        _userService.Create(addUser);
+
         return Ok(new { message = "User created" });
     }
 
     [HttpPut("{id}")]
-    public IActionResult Update(int id, UpdateRequest model)
+    // public IActionResult Update(Guid id, UpdateRequest model)
+    public IActionResult Update(Guid id, [FromForm] AddUpdateUser updateUser)
     {
-        _userService.Update(id, model);
+
+        _userService.Update(id, updateUser);
+
         return Ok(new { message = "User updated" });
     }
 
     [HttpDelete("{id}")]
-    public IActionResult Delete(int id)
+    public IActionResult Delete(Guid id)
     {
         _userService.Delete(id);
         return Ok(new { message = "User deleted" });

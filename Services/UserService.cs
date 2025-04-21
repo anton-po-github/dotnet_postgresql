@@ -19,65 +19,92 @@ public class UserService
         return _userContext.Users;
     }
 
-    public User GetById(int id)
+    public User GetById(Guid id)
     {
         return getUser(id);
     }
 
-    public void Create(CreateRequest model)
+    public void Create(AddUpdateUser addUser)
     {
         // validate
-        if (_userContext.Users.Any(x => x.Email == model.Email))
-            throw new AppException("User with the email '" + model.Email + "' already exists");
+        if (_userContext.Users.Any(x => x.Email == addUser.Email))
+            throw new AppException("User with the email '" + addUser.Email + "' already exists");
 
         // map model to new user object
-        var user = _mapper.Map<User>(model);
-
-        user.Phone = "some_phone_here";
+        //  var user = _mapper.Map<User>(addUser);
+        var user = new User
+        {
+            FirstName = addUser.FirstName,
+            LastName = addUser.LastName,
+            Email = addUser.Email,
+            Phone = "937-99-92",
+            PhotoUrl = ConvertIFormFileToByteArray(addUser.File)
+        };
 
         var userDetails = new UsersDetails
         {
-            Role = "User",
+            Role = "Admin",
             Salary = 1000
         };
 
         user.Details = JsonSerializer.Serialize(userDetails);
-
         // save user
         _userContext.Users.Add(user);
+
         _userContext.SaveChanges();
     }
 
-    public void Update(int id, UpdateRequest model)
+    public void Update(Guid id, AddUpdateUser updateUser)
     {
         var user = getUser(id);
 
         // validate
-        if (model.Email != user.Email && _userContext.Users.Any(x => x.Email == model.Email))
-            throw new AppException("User with the email '" + model.Email + "' already exists");
+        if (updateUser.Email != user.Email && _userContext.Users.Any(x => x.Email == updateUser.Email))
+            throw new AppException("User with the email '" + updateUser.Email + "' already exists");
 
-        user.Phone = "updated_phone_here";
+        user.FirstName = updateUser.FirstName;
+        user.LastName = updateUser.LastName;
+        user.Email = updateUser.Email;
+        user.Phone = "937-99-92";
+        user.PhotoUrl = ConvertIFormFileToByteArray(updateUser.File);
+
         // copy model to user and save
-        _mapper.Map(model, user);
+        // _mapper.Map(model, user);
 
         _userContext.Users.Update(user);
 
         _userContext.SaveChanges();
     }
 
-    public void Delete(int id)
+    public void Delete(Guid id)
     {
         var user = getUser(id);
+
         _userContext.Users.Remove(user);
+
         _userContext.SaveChanges();
     }
 
-    // helper methods
+    private byte[] ConvertIFormFileToByteArray(IFormFile file)
+    {
+        if (file == null || file.Length == 0)
+            return null;
 
-    private User getUser(int id)
+        using (var memoryStream = new MemoryStream())
+        {
+            file.CopyTo(memoryStream);
+
+            return memoryStream.ToArray();
+        }
+    }
+
+    // helper methods
+    private User getUser(Guid id)
     {
         var user = _userContext.Users.Find(id);
+
         if (user == null) throw new KeyNotFoundException("User not found");
+
         return user;
     }
 }
