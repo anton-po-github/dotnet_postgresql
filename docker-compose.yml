@@ -1,0 +1,18 @@
+version: '3.8'
+services:
+  app:
+    image: dotnet_postgresql_docker_hub/dotnet_postgresql:local
+    ports:
+      - "9090:80"
+    environment:
+      - ConnectionStrings__DefaultConnection=${DEFAULT_CONNECTION}
+  db:
+    image: postgres:15
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: identity
+    volumes:
+      - db-data:/var/lib/postgresql/data
+volumes:
+  db-data:
