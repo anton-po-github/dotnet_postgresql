@@ -40,4 +40,4 @@ jobs:
           push: true
           tags: |
             dotnet_postgresql_docker_hub/dotnet_postgresql:${{ github.sha }}
-            dotnet_postgresql_docker_hub/dotnet_postgresql:latest
+            dotnet_postgresql_docker_hub/dotnet_postgresql:local
