@@ -39,7 +39,7 @@ public class PostgresService
     {
         var user = _postgresContext.users.Find(id);
 
-        if (user == null) throw new KeyNotFoundException("User not found");
+        if (user == null) throw new System.Collections.Generic.KeyNotFoundException("User not found");
 
         return user;
 

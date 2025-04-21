@@ -103,7 +103,7 @@ public class UserService
     {
         var user = _userContext.Users.Find(id);
 
-        if (user == null) throw new KeyNotFoundException("User not found");
+        if (user == null) throw new System.Collections.Generic.KeyNotFoundException("User not found");
 
         return user;
     }

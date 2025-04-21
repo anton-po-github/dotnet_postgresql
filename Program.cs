@@ -5,6 +5,8 @@ var builder = WebApplication.CreateBuilder(args);
 
 var services = builder.Services;
 var env = builder.Environment;
+// Register GraphQL server and your Query type
+services.AddGraphQLServer().AddQueryType<Query>();
 
 services.AddSwaggerGen();
 
@@ -75,6 +77,9 @@ app.MapHub<ChatHub>("/hubs/chat");
 app.UseMiddleware<ErrorHandlerMiddleware>();
 
 app.MapControllers();
+
+// Map the /graphql endpoint
+app.MapGraphQL();
 
 // UseAuthentication & UseAuthorization must comment, otherwise [Authorize] will cause 404s
 //app.UseAuthentication();

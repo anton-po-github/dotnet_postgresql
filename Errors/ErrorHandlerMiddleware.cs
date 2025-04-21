@@ -29,7 +29,7 @@ public class ErrorHandlerMiddleware
                     // custom application error
                     response.StatusCode = (int)HttpStatusCode.BadRequest;
                     break;
-                case KeyNotFoundException e:
+                case System.Collections.Generic.KeyNotFoundException e:
                     // not found error
                     response.StatusCode = (int)HttpStatusCode.NotFound;
                     break;
