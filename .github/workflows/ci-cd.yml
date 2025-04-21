@@ -39,5 +39,4 @@ jobs:
           file: ./Dockerfile
           push: true
           tags: |
-            antondoker86/dotnet_postgresql:${{ github.sha }}
-            dotnet_postgresql_docker_hub/dotnet_postgresql:local
+            ${{ secrets.DOCKERHUB_USERNAME }}/dotnet_postgresql:${{ github.sha }}
