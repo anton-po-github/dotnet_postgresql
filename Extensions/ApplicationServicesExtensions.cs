@@ -35,7 +35,7 @@ public static class ApplicationServicesExtensions
 
         services.AddCors(opt =>
          {
-             opt.AddPolicy("CorsPolicy", policy =>
+             opt.AddPolicy("CorsPolicyDev", policy =>
              {
                  policy.WithOrigins("http://localhost:4200")
                  .AllowAnyHeader()
@@ -45,6 +45,19 @@ public static class ApplicationServicesExtensions
                                       // policy.WithOrigins("http://localhost:4200").AllowAnyHeader().AllowAnyOrigin().AllowAnyMethod().AllowAnyOrigin();
              });
          });
+
+        services.AddCors(opt =>
+        {
+            opt.AddPolicy("CorsPolicyProd", policy =>
+            {
+                policy.WithOrigins("https://dotnet-postgresql-service-864171160719.us-central1.run.app")
+                .AllowAnyHeader()
+                .AllowAnyMethod()
+                .AllowCredentials(); // <-- This is important!
+                                     //  policy.AllowAnyHeader().AllowAnyMethod().WithOrigins("http://localhost:4200");
+                                     // policy.WithOrigins("http://localhost:4200").AllowAnyHeader().AllowAnyOrigin().AllowAnyMethod().AllowAnyOrigin();
+            });
+        });
 
         services.AddControllers();
 
