@@ -21,7 +21,7 @@ public class UsersController : ControllerBase
         _mapper = mapper;
     }
 
-    [Authorize(Roles = "Admin")]
+    [Authorize(Roles = "User")]
     [HttpGet]
     public async Task<ActionResult<Pagination<User>>> GetUsers([FromQuery] UserSpecParams userSpecParams)
     {

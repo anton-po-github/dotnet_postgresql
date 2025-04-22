@@ -43,7 +43,7 @@ public class UserService
 
         var userDetails = new UsersDetails
         {
-            Role = "Admin",
+            Role = "User",
             Salary = 1000
         };
 

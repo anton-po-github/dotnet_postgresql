@@ -33,7 +33,7 @@ public class AccountController : ControllerBase
         return Ok("You are an admin, congratulations!");
     }
 
-    [Authorize(Roles = "Admin")]
+    [Authorize(Roles = "User")]
     [HttpGet]
     public async Task<ActionResult<UserDto>> GetCurrentUser()
     {
