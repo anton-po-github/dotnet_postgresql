@@ -3,11 +3,11 @@ services:
   app:
     image: dotnet_postgresql_docker_hub/dotnet_postgresql:local
     ports:
-      - "9090:80"
+      - '8888:80'
     environment:
       - ASPNETCORE_URLS=http://*:80
   db:
-    image: postgres:15 
+    image: postgres:15
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
