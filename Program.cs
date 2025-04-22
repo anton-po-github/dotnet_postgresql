@@ -30,8 +30,7 @@ app.UseStatusCodePagesWithReExecute("/errors/{0}");
 
 app.UseHttpsRedirection();
 
-app.UseCors("CorsPolicyDev");
-app.UseCors("CorsPolicyProd");
+app.UseCors("CorsPolicy");
 
 using (var scopeRole = app.Services.CreateScope())
 {
