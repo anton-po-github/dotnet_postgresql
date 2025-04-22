@@ -24,8 +24,10 @@ jobs:
   build_and_push:
     needs: build_and_test
     runs-on: ubuntu-latest
+
+    # 1) Объявляем, откуда брать выходное значение для других jobs
     outputs:
-      image_uri: ${{ steps.build-and-push.outputs.image_uri }}
+      image_uri: ${{ steps.build-and-push.outputs.image_uri }} # :contentReference[oaicite:2]{index=2}
 
     steps:
       - uses: actions/checkout@v3
@@ -44,17 +46,16 @@ jobs:
           gcloud auth configure-docker \
             ${{ secrets.GAR_LOCATION }}-docker.pkg.dev --quiet
 
+      # 2) В этом шаге собираем, пушим и сразу пишем в GITHUB_OUTPUT
       - id: build-and-push
-        name: Build, Push and Export Image URI
+        name: Build, Push and Set Output
         run: |
-          # Собираем полный URI образа
           IMAGE_URI="${{ secrets.GAR_LOCATION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ secrets.GAR_REPOSITORY }}/dotnet_postgresql:${{ github.sha }}"
           echo "Built image: $IMAGE_URI"
-          # Собираем и пушим
           docker build -t "$IMAGE_URI" -f Dockerfile .
           docker push "$IMAGE_URI"
-          # Записываем в output шага
-          echo "image_uri=$IMAGE_URI" >> "$GITHUB_OUTPUT"
+          # workflow command для установки step-output
+          echo "image_uri=$IMAGE_URI" >> "$GITHUB_OUTPUT"       # :contentReference[oaicite:3]{index=3}
 
   deploy:
     needs: build_and_push
@@ -68,7 +69,8 @@ jobs:
 
       - name: Debug image URI
         run: |
-          echo "Deploying image: ${{ needs.build_and_push.outputs.image_uri }}"
+          echo ">>> DEBUG: image_uri='${{ needs.build_and_push.outputs.image_uri }}'"
+          # Для правильного запуска Deploy ожидаем не пустую строку
 
       - name: Deploy to Cloud Run
         uses: google-github-actions/deploy-cloudrun@v2
