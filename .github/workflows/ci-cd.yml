@@ -24,11 +24,8 @@ jobs:
   build_and_push:
     needs: build_and_test
     runs-on: ubuntu-latest
-
-    # 1) Определяем job output, взятый из шага build-and-push
     outputs:
       image_uri: ${{ steps.build-and-push.outputs.image_uri }}
-
     steps:
       - uses: actions/checkout@v3
 
@@ -41,32 +38,38 @@ jobs:
         with:
           project_id: ${{ secrets.GCP_PROJECT_ID }}
 
-      - name: Configure Docker for Artifact Registry
+      - name: Configure Docker
         run: |
           gcloud auth configure-docker \
             ${{ secrets.GAR_LOCATION }}-docker.pkg.dev --quiet
 
-      # 2) В одном шаге: билд, пуш и запись в GITHUB_OUTPUT
       - id: build-and-push
-        name: Build, Push and Export Image URI
+        name: Build, Push and Set Output
         run: |
           IMAGE_URI="${{ secrets.GAR_LOCATION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ secrets.GAR_REPOSITORY }}/dotnet_postgresql:${{ github.sha }}"
           docker build -t "$IMAGE_URI" -f Dockerfile .
           docker push "$IMAGE_URI"
-          echo "image_uri=$IMAGE_URI" >> "$GITHUB_OUTPUT"       # :contentReference[oaicite:4]{index=4}
+          echo "image_uri=$IMAGE_URI" >> $GITHUB_OUTPUT
 
   deploy:
     needs: build_and_push
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout
+        uses: actions/checkout@v3
 
-      - uses: google-github-actions/auth@v2
+      - name: Auth to GCP
+        uses: google-github-actions/auth@v2
         with:
           credentials_json: ${{ secrets.GCP_SA_KEY }}
 
-      - uses: google-github-actions/deploy-cloudrun@v2
+      - name: Debug outputs
+        run: |
+          echo "Image URI is: ${{ needs.build_and_push.outputs.image_uri }}"
+
+      - name: Deploy to Cloud Run
+        uses: google-github-actions/deploy-cloudrun@v2
         with:
           service: dotnet-postgresql-service
-          image: ${{ needs.build_and_push.outputs.image_uri }} # теперь не пустой :contentReference[oaicite:5]{index=5}
+          image: ${{ needs.build_and_push.outputs.image_uri }}
           region: ${{ secrets.GAR_LOCATION }}
