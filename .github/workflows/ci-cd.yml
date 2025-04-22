@@ -2,15 +2,18 @@ name: CI/CD Pipeline
 
 on:
   push:
-    branches: [ main ]
+    branches: [main]
+
+permissions:
+  contents: 'read'
+  id-token: 'write' # для Workload Identity или GCP Auth
 
 jobs:
-  # 1) Сборка и тесты
   build_and_test:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - name: Setup .NET 9
+      - name: Setup .NET 9
         uses: actions/setup-dotnet@v3
         with:
           dotnet-version: '9.0.x'
@@ -21,22 +24,52 @@ jobs:
       - name: Test
         run: dotnet test --no-build --verbosity normal
 
-  # 2) Сборка и пуш Docker-образа
-  docker:
+  build_and_push:
     needs: build_and_test
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - name: Login to Docker Hub
-        uses: docker/login-action@v3
+
+      # 1) Авторизация в GCP
+      - id: 'auth'
+        uses: google-github-actions/auth@v2
         with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
-      - name: Build and push image
-        uses: docker/build-push-action@v4
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+      # 2) Настройка Docker для Artifact Registry
+      - name: Configure Docker
+        run: |
+          echo "${{ secrets.GCP_SA_KEY }}" | gcloud auth activate-service-account --key-file=-
+          gcloud auth configure-docker ${ { secrets.GCP_PROJECT_ID }}-docker.pkg.dev
+
+      # 3) Сборка и пуш образа
+      - name: Build and Push Docker Image
+        run: |
+          IMAGE_URI=${{ secrets.GCP_PROJECT_ID }}-docker.pkg.dev/${{ secrets.GAR_LOCATION }}/${{ secrets.GAR_REPOSITORY }}/dotnet_postgresql:${{ github.sha }}
+          docker build -f Dockerfile -t $IMAGE_URI .
+          docker push $IMAGE_URI
+
+      # Возвращаем URL образа
+      - name: Set Image URI
+        run: echo "image_uri=$IMAGE_URI" >> $GITHUB_OUTPUT
+
+  deploy:
+    needs: build_and_push
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      # 1) Авторизация в GCP
+      - name: Authenticate to GCP
+        uses: google-github-actions/auth@v2
         with:
-          context: .
-          file: ./Dockerfile
-          push: true
-          tags: |
-            ${{ secrets.DOCKERHUB_USERNAME }}/dotnet_postgresql:${{ github.sha }}
+          credentials_json: ${{ secrets.GCP_SA_KEY }} # тут – корректно :contentReference[oaicite:1]{index=1}
+
+      # 2) Деплой в Cloud Run
+      - name: Deploy to Cloud Run
+        uses: google-github-actions/deploy-cloudrun@v2
+        with:
+          service: dotnet-postgresql-service
+          image: ${{ needs.build_and_push.outputs.image_uri }}
+          region: ${{ secrets.GAR_LOCATION }}
+          # без credentials_json!
