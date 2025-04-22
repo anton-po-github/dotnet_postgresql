@@ -35,13 +35,17 @@ app.UseMiddleware<ErrorHandlerMiddleware>();
 
 app.UseStatusCodePagesWithReExecute("/errors/{0}");
 
-app.UseForwardedHeaders();
 app.UseRouting();
+
+app.UseAuthorization();
+
 app.UseCors("CorsPolicy");
+
 if (!app.Environment.IsDevelopment())
 {
     app.UseHttpsRedirection();
 }
+
 app.MapControllers();
 
 using (var scopeRole = app.Services.CreateScope())
@@ -78,17 +82,11 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-/* app.UseCors(x => x
-    .AllowAnyOrigin()
-    .AllowAnyMethod()
-    .AllowAnyHeader()); */
-
 // Map SignalR hubs
 app.MapHub<ChatHub>("/hubs/chat");
 
 // global error handler
 app.UseMiddleware<ErrorHandlerMiddleware>();
-
 
 // UseAuthentication & UseAuthorization must comment, otherwise [Authorize] will cause 404s
 //app.UseAuthentication();
