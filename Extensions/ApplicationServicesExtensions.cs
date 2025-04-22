@@ -31,15 +31,6 @@ public static class ApplicationServicesExtensions
         services.AddScoped<IBlobService, BlobService>();
         services.AddScoped(typeof(IGenericService<>), (typeof(GenericService<>)));
 
-        services.AddCors(opt =>
-        {
-            opt.AddPolicy("CorsPolicy", b => b
-                .WithOrigins("https://ng-dotnet.web.app")
-                .AllowAnyHeader()
-                .AllowAnyMethod()
-                .AllowCredentials());
-        });
-
         services.AddControllers();
 
         return services;

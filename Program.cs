@@ -4,6 +4,17 @@ using Microsoft.AspNetCore.HttpOverrides;
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.Services.AddCors(opt =>
+{
+    opt.AddPolicy("CorsPolicy", policy => policy
+        .WithOrigins("https://ng-dotnet.web.app")
+        .AllowAnyHeader()
+        .AllowAnyMethod()
+        .AllowCredentials()
+    );
+});
+
+
 var port = Environment.GetEnvironmentVariable("PORT") ?? "8080";
 var url = $"http://0.0.0.0:{port}";
 builder.WebHost.UseUrls(url);
@@ -28,7 +39,8 @@ var app = builder.Build();
 // 1. Forward headers from proxy so Request.Scheme is correct
 app.UseForwardedHeaders(new ForwardedHeadersOptions
 {
-    ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto
+    ForwardedHeaders = ForwardedHeaders.XForwardedFor |
+                       ForwardedHeaders.XForwardedProto
 });
 
 app.UseMiddleware<ErrorHandlerMiddleware>();
@@ -36,16 +48,8 @@ app.UseMiddleware<ErrorHandlerMiddleware>();
 app.UseStatusCodePagesWithReExecute("/errors/{0}");
 
 app.UseRouting();
-
-app.UseAuthorization();
-
 app.UseCors("CorsPolicy");
-
-if (!app.Environment.IsDevelopment())
-{
-    app.UseHttpsRedirection();
-}
-
+app.UseAuthorization();
 app.MapControllers();
 
 using (var scopeRole = app.Services.CreateScope())
@@ -80,6 +84,7 @@ if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
+    app.UseHttpsRedirection();
 }
 
 // Map SignalR hubs
