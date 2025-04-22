@@ -6,7 +6,7 @@ on:
 
 permissions:
   contents: 'read'
-  id-token: 'write'
+  id-token: 'write' # для GCP OIDC Workload Identity
 
 jobs:
   build_and_test:
@@ -24,6 +24,11 @@ jobs:
   build_and_push:
     needs: build_and_test
     runs-on: ubuntu-latest
+
+    # 1) Объявляем job output, который заберёт значение из step `set-image-uri`
+    outputs:
+      image_uri: ${{ steps.set-image-uri.outputs.image_uri }} # :contentReference[oaicite:0]{index=0}
+
     steps:
       - uses: actions/checkout@v3
 
@@ -39,16 +44,24 @@ jobs:
 
       - name: Configure Docker for Artifact Registry
         run: |
-          gcloud auth configure-docker \
-            ${{ secrets.GAR_LOCATION }}-docker.pkg.dev --quiet
+          gcloud auth configure-docker ${{
+            secrets.GAR_LOCATION
+          }}-docker.pkg.dev --quiet
 
       - name: Build and Push Docker Image
         run: |
-          IMAGE_URI=${{ secrets.GAR_LOCATION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ secrets.GAR_REPOSITORY }}/dotnet_postgresql:${{ github.sha }}
+          IMAGE_URI=${{ secrets.GAR_LOCATION }}-docker.pkg.dev/${{
+            secrets.GCP_PROJECT_ID
+          }}/${{ secrets.GAR_REPOSITORY }}/dotnet_postgresql:${{
+            github.sha
+          }}
           docker build -t "$IMAGE_URI" -f Dockerfile .
           docker push "$IMAGE_URI"
-      - name: Set Image URI
-        run: echo "image_uri=$IMAGE_URI" >> $GITHUB_OUTPUT
+
+      # 2) Шаг с `id`, который записывает output в GITHUB_OUTPUT
+      - id: set-image-uri
+        name: Set Image URI
+        run: echo "image_uri=$IMAGE_URI" >> "$GITHUB_OUTPUT" # :contentReference[oaicite:1]{index=1}
 
   deploy:
     needs: build_and_push
@@ -60,8 +73,9 @@ jobs:
         with:
           credentials_json: ${{ secrets.GCP_SA_KEY }}
 
+      # 3) Теперь ACTION точно получит image из предыдущей job
       - uses: google-github-actions/deploy-cloudrun@v2
         with:
           service: dotnet-postgresql-service
-          image: ${{ needs.build_and_push.outputs.image_uri }}
+          image: ${{ needs.build_and_push.outputs.image_uri }} # :contentReference[oaicite:2]{index=2}
           region: ${{ secrets.GAR_LOCATION }}
