@@ -42,7 +42,7 @@ jobs:
         with:
           credentials_json: ${{ secrets.GCP_SA_KEY }}
 
-      # 2.2) Установка gcloud и настройка проекта
+      # 2.2) Установка Cloud SDK
       - name: Set up Cloud SDK
         uses: google-github-actions/setup-gcloud@v2
         with:
@@ -50,15 +50,12 @@ jobs:
 
       # 2.3) Настройка Docker для Artifact Registry
       - name: Configure Docker
-        run: |
-          gcloud auth configure-docker \
-            ${{ secrets.GAR_LOCATION }}-docker.pkg.dev --quiet
+        run: gcloud auth configure-docker ${{ secrets.GAR_LOCATION }}-docker.pkg.dev --quiet
 
-      # 2.4) Сборка и пуш Docker образа, сохранение IMAGE_URI
+      # 2.4) Сборка, пуш и сохранение IMAGE_URI
       - name: Build and push Docker image
         run: |
           IMAGE_URI="${{ secrets.GAR_LOCATION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ secrets.GAR_REPOSITORY }}/dotnet_postgresql:${{ github.sha }}"
-          echo "Building: $IMAGE_URI"
           docker build -t "$IMAGE_URI" -f Dockerfile .
           docker push "$IMAGE_URI"
           echo "IMAGE_URI=$IMAGE_URI" >> "$GITHUB_ENV"
@@ -67,7 +64,7 @@ jobs:
         run: |
           echo "IMAGE_URI is: $IMAGE_URI"
 
-      # 2.5) Деплой в Cloud Run с передачей env_vars внутрь контейнера
+      # 2.5) Деплой в Cloud Run — передаём только ASPNETCORE_URLS и ConnectionStrings
       - name: Deploy to Cloud Run
         uses: google-github-actions/deploy-cloudrun@v2
         with:
@@ -75,10 +72,10 @@ jobs:
           image: ${{ env.IMAGE_URI }}
           region: ${{ secrets.GAR_LOCATION }}
           env_vars: |
-            PORT=8080
-            ASPNETCORE_URLS=http://*:${PORT}          # :contentReference[oaicite:9]{index=9}
+            # Cloud Run сам инжектит PORT, задавать PORT запрещено :contentReference[oaicite:0]{index=0}
+            ASPNETCORE_URLS=http://*:${PORT}              
 
-            ConnectionStrings__ChatMessageConnection=${{ secrets.CHATMSG_CONN }}
-            ConnectionStrings__PostgresConnection=${{ secrets.POSTGRES_CONN }}
-            ConnectionStrings__UsersConnection=${{ secrets.USERS_CONN }}
-            ConnectionStrings__IdentityConnection=${{ secrets.IDENTITY_CONN }}
+            ConnectionStrings__ChatMessageConnection=$ {{ secrets.CHATMSG_CONN }}
+            ConnectionStrings__PostgresConnection=$   {{ secrets.POSTGRES_CONN }}
+            ConnectionStrings__UsersConnection=$     {{ secrets.USERS_CONN }}
+            ConnectionStrings__IdentityConnection=$  {{ secrets.IDENTITY_CONN }}
