@@ -3,7 +3,7 @@ services:
   app:
     image: dotnet_postgresql_docker_hub/dotnet_postgresql:local
     ports:
-      - '8888:80'
+      - '8080:80'
     environment:
       - ASPNETCORE_URLS=http://*:80
   db:
