@@ -54,35 +54,31 @@ jobs:
           gcloud auth configure-docker \
             ${{ secrets.GAR_LOCATION }}-docker.pkg.dev --quiet
 
-      # 2.4) Сборка, пуш и сохранение IMAGE_URI
+      # 2.4) Сборка и пуш Docker образа, сохранение IMAGE_URI
       - name: Build and push Docker image
         run: |
           IMAGE_URI="${{ secrets.GAR_LOCATION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ secrets.GAR_REPOSITORY }}/dotnet_postgresql:${{ github.sha }}"
           echo "Building: $IMAGE_URI"
           docker build -t "$IMAGE_URI" -f Dockerfile .
           docker push "$IMAGE_URI"
-          # Сохраняем для последующего шага
           echo "IMAGE_URI=$IMAGE_URI" >> "$GITHUB_ENV"
 
-      # 2.5) Отладка: убедимся, что переменная передана
       - name: Debug IMAGE_URI
         run: |
           echo "IMAGE_URI is: $IMAGE_URI"
 
-      # 2.6) Деплой в Cloud Run: используем env.IMAGE_URI
+      # 2.5) Деплой в Cloud Run с передачей env_vars внутрь контейнера
       - name: Deploy to Cloud Run
         uses: google-github-actions/deploy-cloudrun@v2
         with:
           service: dotnet-postgresql-service
           image: ${{ env.IMAGE_URI }}
           region: ${{ secrets.GAR_LOCATION }}
-        env:
-          # Порт, который передаёт Cloud Run; задаём явный порт
-          PORT: 8080
-          ASPNETCORE_URLS: http://*:${PORT} # :contentReference[oaicite:9]{index=9}
+          env_vars: |
+            PORT=8080
+            ASPNETCORE_URLS=http://*:${PORT}          # :contentReference[oaicite:9]{index=9}
 
-          # Строки подключения
-          ConnectionStrings__ChatMessageConnection: 'Host=aws-0-eu-central-1.pooler.supabase.com;Port=5432;Username=postgres.bszrlnqbgbjicfbhptnw;Password=*k$V5$6-LvsFW*);Database=chat_messages;Pooling=true;Minimum Pool Size=1;Maximum Pool Size=20'
-          ConnectionStrings__PostgresConnection: 'Host=aws-0-eu-central-1.pooler.supabase.com;Port=5432;Username=postgres.bszrlnqbgbjicfbhptnw;Password=*k$V5$6-LvsFW*);Database=postgres;Pooling=true;Minimum Pool Size=1;Maximum Pool Size=20'
-          ConnectionStrings__UsersConnection: 'Host=aws-0-eu-central-1.pooler.supabase.com;Port=5432;Username=postgres.bszrlnqbgbjicfbhptnw;Password=*k$V5$6-LvsFW*);Database=users;Pooling=true;Minimum Pool Size=1;Maximum Pool Size=20'
-          ConnectionStrings__IdentityConnection: 'Host=aws-0-eu-central-1.pooler.supabase.com;Port=5432;Username=postgres.bszrlnqbgbjicfbhptnw;Password=*k$V5$6-LvsFW*);Database=identity;Pooling=true;Minimum Pool Size=1;Maximum Pool Size=20'
+            ConnectionStrings__ChatMessageConnection=${{ secrets.CHATMSG_CONN }}
+            ConnectionStrings__PostgresConnection=${{ secrets.POSTGRES_CONN }}
+            ConnectionStrings__UsersConnection=${{ secrets.USERS_CONN }}
+            ConnectionStrings__IdentityConnection=${{ secrets.IDENTITY_CONN }}
