@@ -6,7 +6,7 @@ on:
 
 permissions:
   contents: 'read'
-  id-token: 'write' # нужен для Workload Identity или OIDC
+  id-token: 'write'
 
 jobs:
   build_and_test:
@@ -17,12 +17,9 @@ jobs:
         uses: actions/setup-dotnet@v3
         with:
           dotnet-version: '9.0.x'
-      - name: Restore
-        run: dotnet restore
-      - name: Build
-        run: dotnet build --no-restore --configuration Release
-      - name: Test
-        run: dotnet test --no-build --verbosity normal
+      - run: dotnet restore
+      - run: dotnet build --no-restore -c Release
+      - run: dotnet test --no-build --verbosity normal
 
   build_and_push:
     needs: build_and_test
@@ -30,28 +27,25 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      # 1) Аутентификация в GCP (JSON key)
       - id: auth
         uses: google-github-actions/auth@v2
         with:
           credentials_json: ${{ secrets.GCP_SA_KEY }}
 
-      # 2) Установка gcloud CLI
       - name: Set up Cloud SDK
         uses: google-github-actions/setup-gcloud@v2
         with:
           project_id: ${{ secrets.GCP_PROJECT_ID }}
 
-      # 3) Конфигурация Docker для Artifact Registry
-      - name: Configure Docker
-        run: gcloud auth configure-docker \
-          ${{ secrets.GCP_PROJECT_ID }}-docker.pkg.dev --quiet
+      - name: Configure Docker for Artifact Registry
+        run: |
+          gcloud auth configure-docker \
+            ${{ secrets.GAR_LOCATION }}-docker.pkg.dev --quiet
 
-      # 4) Сборка и пуш Docker‑образа
       - name: Build and Push Docker Image
         run: |
-          IMAGE_URI="${{ secrets.GCP_PROJECT_ID }}-docker.pkg.dev/${{ secrets.GAR_LOCATION }}/${{ secrets.GAR_REPOSITORY }}/dotnet_postgresql:${{ github.sha }}"
-          docker build -f Dockerfile -t "$IMAGE_URI" .
+          IMAGE_URI=${{ secrets.GAR_LOCATION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ secrets.GAR_REPOSITORY }}/dotnet_postgresql:${{ github.sha }}
+          docker build -t "$IMAGE_URI" -f Dockerfile .
           docker push "$IMAGE_URI"
       - name: Set Image URI
         run: echo "image_uri=$IMAGE_URI" >> $GITHUB_OUTPUT
@@ -62,12 +56,10 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      # 1) Аутентификация (повторно не нужна, но можно для наглядности)
       - uses: google-github-actions/auth@v2
         with:
           credentials_json: ${{ secrets.GCP_SA_KEY }}
 
-      # 2) Деплой в Cloud Run (без credentials_json тут)
       - uses: google-github-actions/deploy-cloudrun@v2
         with:
           service: dotnet-postgresql-service
