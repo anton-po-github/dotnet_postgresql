@@ -16,8 +16,9 @@ public class AccountController : ControllerBase
         UserManager<IdentityUser> userManager,
         SignInManager<IdentityUser> signInManager,
         TokenService tokenService,
-        EmailService emailService,
-        IMapper mapper)
+        EmailService emailService
+        //IMapper mapper
+        )
     {
         _tokenService = tokenService;
         _emailService = emailService;
