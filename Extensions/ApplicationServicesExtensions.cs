@@ -50,7 +50,7 @@ public static class ApplicationServicesExtensions
         {
             opt.AddPolicy("CorsPolicyProd", policy =>
             {
-                policy.WithOrigins("https://dotnet-postgresql-service-864171160719.us-central1.run.app")
+                policy.WithOrigins("https://ng-dotnet.web.app")
                 .AllowAnyHeader()
                 .AllowAnyMethod()
                 .AllowCredentials(); // <-- This is important!
