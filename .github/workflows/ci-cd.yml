@@ -9,72 +9,71 @@ permissions:
   id-token: 'write' # для GCP OIDC/Auth
 
 jobs:
+  # 1) Билд и тесты
   build_and_test:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
+
       - name: Setup .NET 9
         uses: actions/setup-dotnet@v3
         with:
           dotnet-version: '9.0.x'
-      - run: dotnet restore
-      - run: dotnet build --no-restore -c Release
-      - run: dotnet test --no-build --verbosity normal
 
-  build_and_push:
+      - name: Restore dependencies
+        run: dotnet restore
+
+      - name: Build release
+        run: dotnet build --no-restore -c Release
+
+      - name: Run tests
+        run: dotnet test --no-build --verbosity normal
+
+  # 2) Сборка, пуш и деплой
+  build_and_deploy:
     needs: build_and_test
     runs-on: ubuntu-latest
-
-    # 1) Объявляем, откуда брать выходное значение для других jobs
-    outputs:
-      image_uri: ${{ steps.build-and-push.outputs.image_uri }} # :contentReference[oaicite:2]{index=2}
-
     steps:
       - uses: actions/checkout@v3
 
-      - uses: google-github-actions/auth@v2
+      # 2.1) Авторизация в GCP
+      - name: Authenticate to GCP
+        uses: google-github-actions/auth@v2
         with:
           credentials_json: ${{ secrets.GCP_SA_KEY }}
 
+      # 2.2) Установка gcloud и настройка проекта
       - name: Set up Cloud SDK
         uses: google-github-actions/setup-gcloud@v2
         with:
           project_id: ${{ secrets.GCP_PROJECT_ID }}
 
-      - name: Configure Docker for Artifact Registry
+      # 2.3) Настройка Docker для Artifact Registry
+      - name: Configure Docker
         run: |
           gcloud auth configure-docker \
             ${{ secrets.GAR_LOCATION }}-docker.pkg.dev --quiet
 
-      # 2) В этом шаге собираем, пушим и сразу пишем в GITHUB_OUTPUT
-      - id: build-and-push
-        name: Build, Push and Set Output
+      # 2.4) Сборка, пуш и сохранение IMAGE_URI
+      - name: Build and push Docker image
         run: |
           IMAGE_URI="${{ secrets.GAR_LOCATION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ secrets.GAR_REPOSITORY }}/dotnet_postgresql:${{ github.sha }}"
-          echo "Built image: $IMAGE_URI"
+          echo "Building: $IMAGE_URI"
           docker build -t "$IMAGE_URI" -f Dockerfile .
           docker push "$IMAGE_URI"
-          # workflow command для установки step-output
-          echo "image_uri=$IMAGE_URI" >> "$GITHUB_OUTPUT"       # :contentReference[oaicite:3]{index=3}
+          # Сохраняем для последующего шага
+          echo "IMAGE_URI=$IMAGE_URI" >> "$GITHUB_ENV"
 
-  deploy:
-    needs: build_and_push
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-
-      - uses: google-github-actions/auth@v2
-        with:
-          credentials_json: ${{ secrets.GCP_SA_KEY }}
-
-      - name: Debug image URI
+      # 2.5) Отладка: убедимся, что переменная передана
+      - name: Debug IMAGE_URI
         run: |
-          echo ">>> DEBUG: image_uri='${{ needs.build_and_push.outputs.image_uri }}'"
-          # Для правильного запуска Deploy ожидаем не пустую строку
+          echo "IMAGE_URI is: $IMAGE_URI"
 
+      # 2.6) Деплой в Cloud Run: используем env.IMAGE_URI
       - name: Deploy to Cloud Run
         uses: google-github-actions/deploy-cloudrun@v2
         with:
           service: dotnet-postgresql-service
-          image: ${{ needs.build_and_push.outputs.image_uri }}
+          image: ${{ env.IMAGE_URI }}
           region: ${{ secrets.GAR_LOCATION }}
+      #    allow-unauthenticated: true  # при необходимости
