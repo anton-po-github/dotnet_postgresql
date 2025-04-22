@@ -28,11 +28,15 @@ app.UseMiddleware<ErrorHandlerMiddleware>();
 
 app.UseStatusCodePagesWithReExecute("/errors/{0}");
 
-app.UseHttpsRedirection();
+if (!app.Environment.IsDevelopment())
+{
+    app.UseHttpsRedirection();
+}
+
 
 app.UseRouting();
-
 app.UseCors("CorsPolicy");
+app.MapControllers();
 
 using (var scopeRole = app.Services.CreateScope())
 {
@@ -79,7 +83,6 @@ app.MapHub<ChatHub>("/hubs/chat");
 // global error handler
 app.UseMiddleware<ErrorHandlerMiddleware>();
 
-app.MapControllers();
 
 // UseAuthentication & UseAuthorization must comment, otherwise [Authorize] will cause 404s
 //app.UseAuthentication();
