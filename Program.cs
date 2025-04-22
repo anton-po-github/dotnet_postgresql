@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.HttpOverrides;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -24,18 +25,23 @@ services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 
 var app = builder.Build();
 
+// 1. Forward headers from proxy so Request.Scheme is correct
+app.UseForwardedHeaders(new ForwardedHeadersOptions
+{
+    ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto
+});
+
 app.UseMiddleware<ErrorHandlerMiddleware>();
 
 app.UseStatusCodePagesWithReExecute("/errors/{0}");
 
+app.UseForwardedHeaders();
+app.UseRouting();
+app.UseCors("CorsPolicy");
 if (!app.Environment.IsDevelopment())
 {
     app.UseHttpsRedirection();
 }
-
-
-app.UseRouting();
-app.UseCors("CorsPolicy");
 app.MapControllers();
 
 using (var scopeRole = app.Services.CreateScope())

@@ -34,10 +34,10 @@ public static class ApplicationServicesExtensions
         services.AddCors(opt =>
         {
             opt.AddPolicy("CorsPolicy", b => b
-              .WithOrigins("https://ng-dotnet.web.app")
-              .AllowAnyHeader()
-              .AllowAnyMethod()
-              .AllowCredentials());
+                .WithOrigins("https://ng-dotnet.web.app")
+                .AllowAnyHeader()
+                .AllowAnyMethod()
+                .AllowCredentials());
         });
 
         services.AddControllers();
