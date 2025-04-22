@@ -43,6 +43,24 @@ app.UseForwardedHeaders(new ForwardedHeadersOptions
                        ForwardedHeaders.XForwardedProto
 });
 
+app.Use(async (context, next) =>
+{
+    // Всегда добавляем нужные CORS‑заголовки
+    context.Response.Headers["Access-Control-Allow-Origin"] = "https://ng-dotnet.web.app";
+    context.Response.Headers["Access-Control-Allow-Methods"] = "GET,POST,PUT,DELETE,OPTIONS";
+    context.Response.Headers["Access-Control-Allow-Headers"] = "Content-Type,Authorization";
+    context.Response.Headers["Access-Control-Allow-Credentials"] = "true";
+
+    if (context.Request.Method == HttpMethods.Options)
+    {
+        context.Response.StatusCode = StatusCodes.Status204NoContent;
+        return;
+    }
+
+    await next();
+});
+
+
 app.UseMiddleware<ErrorHandlerMiddleware>();
 
 app.UseStatusCodePagesWithReExecute("/errors/{0}");
