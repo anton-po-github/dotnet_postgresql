@@ -76,4 +76,13 @@ jobs:
           service: dotnet-postgresql-service
           image: ${{ env.IMAGE_URI }}
           region: ${{ secrets.GAR_LOCATION }}
-      #    allow-unauthenticated: true  # при необходимости
+        env:
+          # Порт, который передаёт Cloud Run; задаём явный порт
+          PORT: 8080
+          ASPNETCORE_URLS: http://*:${PORT} # :contentReference[oaicite:9]{index=9}
+
+          # Строки подключения
+          ConnectionStrings__ChatMessageConnection: 'Host=aws-0-eu-central-1.pooler.supabase.com;Port=5432;Username=postgres.bszrlnqbgbjicfbhptnw;Password=*k$V5$6-LvsFW*);Database=chat_messages;Pooling=true;Minimum Pool Size=1;Maximum Pool Size=20'
+          ConnectionStrings__PostgresConnection: 'Host=aws-0-eu-central-1.pooler.supabase.com;Port=5432;Username=postgres.bszrlnqbgbjicfbhptnw;Password=*k$V5$6-LvsFW*);Database=postgres;Pooling=true;Minimum Pool Size=1;Maximum Pool Size=20'
+          ConnectionStrings__UsersConnection: 'Host=aws-0-eu-central-1.pooler.supabase.com;Port=5432;Username=postgres.bszrlnqbgbjicfbhptnw;Password=*k$V5$6-LvsFW*);Database=users;Pooling=true;Minimum Pool Size=1;Maximum Pool Size=20'
+          ConnectionStrings__IdentityConnection: 'Host=aws-0-eu-central-1.pooler.supabase.com;Port=5432;Username=postgres.bszrlnqbgbjicfbhptnw;Password=*k$V5$6-LvsFW*);Database=identity;Pooling=true;Minimum Pool Size=1;Maximum Pool Size=20'
