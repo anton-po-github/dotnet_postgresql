@@ -6,7 +6,7 @@ on:
 
 permissions:
   contents: 'read'
-  id-token: 'write' # для GCP OIDC Workload Identity
+  id-token: 'write' # для GCP OIDC/Auth
 
 jobs:
   build_and_test:
@@ -25,6 +25,7 @@ jobs:
     needs: build_and_test
     runs-on: ubuntu-latest
 
+    # 1) Определяем job output, взятый из шага build-and-push
     outputs:
       image_uri: ${{ steps.build-and-push.outputs.image_uri }}
 
@@ -42,15 +43,17 @@ jobs:
 
       - name: Configure Docker for Artifact Registry
         run: |
-          gcloud auth configure-docker ${{ secrets.GAR_LOCATION }}-docker.pkg.dev --quiet
+          gcloud auth configure-docker \
+            ${{ secrets.GAR_LOCATION }}-docker.pkg.dev --quiet
 
+      # 2) В одном шаге: билд, пуш и запись в GITHUB_OUTPUT
       - id: build-and-push
-        name: Build, Push and Set Output
+        name: Build, Push and Export Image URI
         run: |
           IMAGE_URI="${{ secrets.GAR_LOCATION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ secrets.GAR_REPOSITORY }}/dotnet_postgresql:${{ github.sha }}"
           docker build -t "$IMAGE_URI" -f Dockerfile .
           docker push "$IMAGE_URI"
-          echo "image_uri=$IMAGE_URI" >> "$GITHUB_OUTPUT"
+          echo "image_uri=$IMAGE_URI" >> "$GITHUB_OUTPUT"       # :contentReference[oaicite:4]{index=4}
 
   deploy:
     needs: build_and_push
@@ -65,5 +68,5 @@ jobs:
       - uses: google-github-actions/deploy-cloudrun@v2
         with:
           service: dotnet-postgresql-service
-          image: ${{ needs.build_and_push.outputs.image_uri }}
+          image: ${{ needs.build_and_push.outputs.image_uri }} # теперь не пустой :contentReference[oaicite:5]{index=5}
           region: ${{ secrets.GAR_LOCATION }}
