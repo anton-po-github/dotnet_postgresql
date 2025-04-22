@@ -31,8 +31,6 @@ public static class ApplicationServicesExtensions
         services.AddScoped<IBlobService, BlobService>();
         services.AddScoped(typeof(IGenericService<>), (typeof(GenericService<>)));
 
-        // services.AddCors();
-
         services.AddCors(opt =>
          {
              opt.AddPolicy("CorsPolicy", policy =>
@@ -40,9 +38,7 @@ public static class ApplicationServicesExtensions
                  policy.WithOrigins("http://localhost:4200", "https://ng-dotnet.web.app")
                  .AllowAnyHeader()
                  .AllowAnyMethod()
-                 .AllowCredentials(); // <-- This is important!
-                                      //  policy.AllowAnyHeader().AllowAnyMethod().WithOrigins("http://localhost:4200");
-                                      // policy.WithOrigins("http://localhost:4200").AllowAnyHeader().AllowAnyOrigin().AllowAnyMethod().AllowAnyOrigin();
+                 .AllowCredentials();
              });
          });
 

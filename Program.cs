@@ -30,13 +30,14 @@ app.UseStatusCodePagesWithReExecute("/errors/{0}");
 
 app.UseHttpsRedirection();
 
+app.UseRouting();
+
 app.UseCors("CorsPolicy");
 
 using (var scopeRole = app.Services.CreateScope())
 {
     await IdentitySeeder.SeedRolesAsync(scopeRole.ServiceProvider);
 }
-
 
 using var scope = app.Services.CreateScope();
 var serviceProvider = scope.ServiceProvider;
