@@ -13,6 +13,8 @@ WORKDIR /app
 COPY --from=build /app/out ./
 
 # Гарантируем, что Kestrel подхватит PORT=8080
-ENV ASPNETCORE_URLS=http://*:${PORT:-8080}
+ENV ASPNETCORE_URLS=http://+:8080
+
+ENV PORT=8080
 
 ENTRYPOINT ["dotnet", "dotnet_postgresql.dll"]

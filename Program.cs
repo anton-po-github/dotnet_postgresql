@@ -3,6 +3,10 @@ using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
+var port = Environment.GetEnvironmentVariable("PORT") ?? "8080";
+var url = $"http://0.0.0.0:{port}";
+builder.WebHost.UseUrls(url);
+
 var services = builder.Services;
 var env = builder.Environment;
 
