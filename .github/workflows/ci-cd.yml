@@ -26,6 +26,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       image_uri: ${{ steps.build-and-push.outputs.image_uri }}
+
     steps:
       - uses: actions/checkout@v3
 
@@ -38,34 +39,36 @@ jobs:
         with:
           project_id: ${{ secrets.GCP_PROJECT_ID }}
 
-      - name: Configure Docker
+      - name: Configure Docker for Artifact Registry
         run: |
           gcloud auth configure-docker \
             ${{ secrets.GAR_LOCATION }}-docker.pkg.dev --quiet
 
       - id: build-and-push
-        name: Build, Push and Set Output
+        name: Build, Push and Export Image URI
         run: |
+          # Собираем полный URI образа
           IMAGE_URI="${{ secrets.GAR_LOCATION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ secrets.GAR_REPOSITORY }}/dotnet_postgresql:${{ github.sha }}"
+          echo "Built image: $IMAGE_URI"
+          # Собираем и пушим
           docker build -t "$IMAGE_URI" -f Dockerfile .
           docker push "$IMAGE_URI"
-          echo "image_uri=$IMAGE_URI" >> $GITHUB_OUTPUT
+          # Записываем в output шага
+          echo "image_uri=$IMAGE_URI" >> "$GITHUB_OUTPUT"
 
   deploy:
     needs: build_and_push
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v3
+      - uses: actions/checkout@v3
 
-      - name: Auth to GCP
-        uses: google-github-actions/auth@v2
+      - uses: google-github-actions/auth@v2
         with:
           credentials_json: ${{ secrets.GCP_SA_KEY }}
 
-      - name: Debug outputs
+      - name: Debug image URI
         run: |
-          echo "Image URI is: ${{ needs.build_and_push.outputs.image_uri }}"
+          echo "Deploying image: ${{ needs.build_and_push.outputs.image_uri }}"
 
       - name: Deploy to Cloud Run
         uses: google-github-actions/deploy-cloudrun@v2
