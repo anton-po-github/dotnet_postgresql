@@ -142,7 +142,6 @@ public class AccountController : ControllerBase
     public async Task<IdentityResult> DeleteUser(string id)
     {
         var user = await _userManager.FindByIdAsync(id);
-
         var result = await _userManager.DeleteAsync(user);
 
         return result;
