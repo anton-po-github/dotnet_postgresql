@@ -4,107 +4,94 @@ using Microsoft.AspNetCore.HttpOverrides;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Bind to the correct port (supports Cloud Run) and configure URLs
 var port = Environment.GetEnvironmentVariable("PORT") ?? "8080";
-var url = $"http://0.0.0.0:{port}";
-builder.WebHost.UseUrls(url);
+builder.WebHost.UseUrls($"http://0.0.0.0:{port}");
 
 var services = builder.Services;
-var env = builder.Environment;
+var configuration = builder.Configuration;
 
+// 1. Configure CORS to allow both local dev and production Angular apps
+services.AddCors(options =>
+{
+    options.AddPolicy("CorsPolicy", policy =>
+    {
+        policy
+            .WithOrigins("http://localhost:4200", "https://ng-dotnet.web.app")
+            .AllowAnyHeader()
+            .AllowAnyMethod()
+            .AllowCredentials();
+    });
+});
+
+// 2. Swagger/OpenAPI (only in Development)
 services.AddSwaggerGen();
 
-services.AddApplicationServices(builder.Configuration);
-// Add SignalR services
+// 3. Application services, AutoMapper, SignalR, Identity, etc.
+services.AddApplicationServices(configuration);
 services.AddSignalR();
-
 services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
+services.AddIdentityServices(configuration);
 
-services.AddIdentityServices(builder.Configuration);
-
-services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
+// 4. EF Core DbContexts, Identity, etc. inside AddApplicationServices / AddIdentityServices
 
 var app = builder.Build();
 
-// 1. Forward headers from proxy so Request.Scheme is correct
+// 5. Forwarded headers for correct Request.Scheme behind proxies
 app.UseForwardedHeaders(new ForwardedHeadersOptions
 {
-    ForwardedHeaders = ForwardedHeaders.XForwardedFor |
-                       ForwardedHeaders.XForwardedProto
+    ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto
 });
 
-app.Use(async (context, next) =>
-{
-    // Всегда добавляем нужные CORS‑заголовки
-    context.Response.Headers["Access-Control-Allow-Origin"] = "https://ng-dotnet.web.app";
-    context.Response.Headers["Access-Control-Allow-Methods"] = "GET,POST,PUT,DELETE,OPTIONS";
-    context.Response.Headers["Access-Control-Allow-Headers"] = "Content-Type,Authorization";
-    context.Response.Headers["Access-Control-Allow-Credentials"] = "true";
-
-    if (context.Request.Method == HttpMethods.Options)
-    {
-        context.Response.StatusCode = StatusCodes.Status204NoContent;
-        return;
-    }
-
-    await next();
-});
-
-
+// 6. Global error handler
 app.UseMiddleware<ErrorHandlerMiddleware>();
-
 app.UseStatusCodePagesWithReExecute("/errors/{0}");
 
+// 7. Routing
 app.UseRouting();
+
+// 8. Enable CORS BEFORE Authentication/Authorization
 app.UseCors("CorsPolicy");
 
-/* app.UseAuthentication();
-app.UseAuthorization(); */
+// 9. Authentication & Authorization
+app.UseAuthentication();
+app.UseAuthorization();
 
-app.MapControllers();
-
-using (var scopeRole = app.Services.CreateScope())
+// 10. Map controllers and hubs
+app.UseEndpoints(endpoints =>
 {
-    await IdentitySeeder.SeedRolesAsync(scopeRole.ServiceProvider);
+    endpoints.MapControllers();
+    endpoints.MapHub<ChatHub>("/hubs/chat");
+});
+
+// 11. DB migrations & seed data
+using (var scope = app.Services.CreateScope())
+{
+    var servicesProvider = scope.ServiceProvider;
+    var logger = servicesProvider.GetRequiredService<ILogger<Program>>();
+    try
+    {
+        var usersContext = servicesProvider.GetRequiredService<UsersContext>();
+        var identityContext = servicesProvider.GetRequiredService<IdentityContext>();
+        var userManager = servicesProvider.GetRequiredService<UserManager<IdentityUser>>();
+
+        await usersContext.Database.MigrateAsync();
+        await identityContext.Database.MigrateAsync();
+        await IdentityContextSeed.SeedUsersAsync(userManager);
+        await IdentitySeeder.SeedRolesAsync(servicesProvider);
+    }
+    catch (Exception ex)
+    {
+        logger.LogError(ex, "An error occurred during database migration or seeding");
+    }
 }
 
-using var scope = app.Services.CreateScope();
-var serviceProvider = scope.ServiceProvider;
-var context = serviceProvider.GetRequiredService<UsersContext>();
-var loggerFactory = serviceProvider.GetRequiredService<ILoggerFactory>();
-var identityContext = serviceProvider.GetRequiredService<IdentityContext>();
-var userManager = serviceProvider.GetRequiredService<UserManager<IdentityUser>>();
-var logger = serviceProvider.GetRequiredService<ILogger<Program>>();
-try
-{
-    await context.Database.MigrateAsync();
-    // await StoreContextSeed.SeedAsync(context, loggerFactory);
-
-    await identityContext.Database.MigrateAsync();
-    //await StoreContextSeed.SeedAsync(context);
-    await IdentityContextSeed.SeedUsersAsync(userManager);
-}
-catch (Exception ex)
-{
-    logger.LogError(ex, "An error occured during migration");
-}
-// global cors policy
-
-// Configure the HTTP request pipeline.
+// 12. Swagger UI & HTTPS redirection in Development
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
     app.UseHttpsRedirection();
 }
-
-// Map SignalR hubs
-app.MapHub<ChatHub>("/hubs/chat");
-
-// global error handler
-app.UseMiddleware<ErrorHandlerMiddleware>();
-
-// UseAuthentication & UseAuthorization must comment, otherwise [Authorize] will cause 404s
-//app.UseAuthentication();
-//app.UseAuthorization();
 
 app.Run();

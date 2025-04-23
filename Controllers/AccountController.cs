@@ -34,7 +34,8 @@ public class AccountController : ControllerBase
         return Ok("You are an admin, congratulations!");
     }
 
-    [HttpGet]
+    [Authorize]
+    [HttpGet("GetCurrentUser")]
     public async Task<ActionResult<UserDto>> GetCurrentUser()
     {
         var user = await _userManager.FindByEmailFromClaimsPrinciple(User);
@@ -48,7 +49,7 @@ public class AccountController : ControllerBase
         };
     }
 
-    // [Authorize]
+    [Authorize]
     [HttpGet("all")]
     public async Task<ActionResult<List<IdentityUser>>> GetAllUsers()
     {
