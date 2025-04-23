@@ -10,6 +10,4 @@ public static class UserManagerExtensions
 
         return await input.Users.SingleOrDefaultAsync(x => x.Email == email);
     }
-
-
 }

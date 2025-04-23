@@ -1,72 +1,60 @@
 name: CI/CD Pipeline
-
 on:
   push:
     branches: [main]
 
 permissions:
   contents: 'read'
-  id-token: 'write' # для GCP OIDC/Auth
+  id-token: 'write'
 
 jobs:
-  # 1) Билд и тесты
   build_and_test:
     runs-on: ubuntu-latest
+    services:
+      mongodb:
+        image: mongo:6.0
+        ports: ['27017:27017']
+        options: >-
+          --health-cmd "mongo --eval 'db.adminCommand(\"ping\")'"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
     steps:
       - uses: actions/checkout@v3
-
       - name: Setup .NET 9
         uses: actions/setup-dotnet@v3
         with:
           dotnet-version: '9.0.x'
-
       - name: Restore dependencies
         run: dotnet restore
-
       - name: Build release
         run: dotnet build --no-restore -c Release
-
       - name: Run tests
+        env:
+          MONGODB_URI: mongodb://localhost:27017/BookstoreDb
         run: dotnet test --no-build --verbosity normal
 
-  # 2) Сборка, пуш и деплой одним job’ом
   build_and_deploy:
     needs: build_and_test
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-
-      # 2.1) Авторизация в GCP
       - name: Authenticate to GCP
         uses: google-github-actions/auth@v2
         with:
           credentials_json: ${{ secrets.GCP_SA_KEY }}
-
-      # 2.2) Установка Cloud SDK и выбор проекта
       - name: Set up Cloud SDK
         uses: google-github-actions/setup-gcloud@v2
         with:
           project_id: ${{ secrets.GCP_PROJECT_ID }}
-
-      # 2.3) Настройка Docker для Artifact Registry
       - name: Configure Docker
         run: gcloud auth configure-docker ${{ secrets.GAR_LOCATION }}-docker.pkg.dev --quiet
-
-      # 2.4) Сборка и пуш образа, экспорт IMAGE_URI
       - name: Build and push Docker image
         run: |
           IMAGE_URI="${{ secrets.GAR_LOCATION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ secrets.GAR_REPOSITORY }}/dotnet_postgresql:${{ github.sha }}"
-          echo "Building: $IMAGE_URI"
           docker build -t "$IMAGE_URI" -f Dockerfile .
           docker push "$IMAGE_URI"
           echo "IMAGE_URI=$IMAGE_URI" >> "$GITHUB_ENV"
-
-      # 2.5) Отладка IMAGE_URI
-      - name: Debug IMAGE_URI
-        run: |
-          echo "IMAGE_URI is: $IMAGE_URI"
-
-      # 2.6) Деплой в Cloud Run
       - name: Deploy to Cloud Run
         uses: google-github-actions/deploy-cloudrun@v2
         with:
@@ -79,17 +67,12 @@ jobs:
             ConnectionStrings__PostgresConnection=${{ secrets.POSTGRES_CONN }}
             ConnectionStrings__UsersConnection=${{ secrets.USERS_CONN }}
             ConnectionStrings__IdentityConnection=${{ secrets.IDENTITY_CONN }}
+            ConnectionStrings__MongoConnection=${{ secrets.MONGODB_CONN }}
             Token__Key=${{ secrets.TOKEN_KEY }}
             Token__Issuer=${{ secrets.TOKEN_ISSUER }}
             SendGridApiKey=${{ secrets.SENDGRID_API_KEY }}
-
-      # 2.7) Разрешение неаутентифицированных вызовов (allUsers invoker)
       - name: Allow unauthenticated invocations
         run: |
-          # Добавляем binding:
-          # - members:
-          #   - allUsers
-          #   role: roles/run.invoker
           gcloud run services add-iam-policy-binding dotnet-postgresql-service \
             --member="allUsers" \
             --role="roles/run.invoker" \

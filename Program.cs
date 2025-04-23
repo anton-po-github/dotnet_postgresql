@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.HttpOverrides;
+using MongoDB.Driver;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -26,6 +27,14 @@ services.AddCors(options =>
 
 // 2. Swagger/OpenAPI (only in Development)
 services.AddSwaggerGen();
+
+var mongoSettings = builder.Configuration
+    .GetSection("MongoDB")
+    .Get<MongoDBSettings>();
+builder.Services.AddSingleton(mongoSettings);
+builder.Services.AddSingleton<IMongoClient>(sp =>
+    new MongoClient(mongoSettings.ConnectionString));
+
 
 // 3. Application services, AutoMapper, SignalR, Identity, etc.
 services.AddApplicationServices(configuration);
