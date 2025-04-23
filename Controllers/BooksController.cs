@@ -39,7 +39,7 @@ public class BooksController : ControllerBase
     }
 
     [HttpPut("{id:length(24)}")]
-    public IActionResult Update(string id, Book bookIn)
+    public async Task<ActionResult<Book>> Update(string id, [FromForm(Name = "icon")] IFormFile file)
     {
         var book = _bookService.GetOneBook(id);
 
@@ -48,22 +48,23 @@ public class BooksController : ControllerBase
             return NotFound();
         }
 
-        _bookService.Update(id, bookIn);
+        await _bookService.Update(id, book, file);
 
-        return NoContent();
+        return book;
     }
 
     [HttpDelete("{id:length(24)}")]
-    public IActionResult Delete(string id)
+    public bool Delete(string id)
     {
         var book = _bookService.GetOneBook(id);
+
         if (book == null)
         {
-            return NotFound();
+            return false;
         }
 
         _bookService.Remove(book, book.IconId);
 
-        return NoContent();
+        return true;
     }
 }

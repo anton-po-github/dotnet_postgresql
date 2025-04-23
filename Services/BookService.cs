@@ -30,8 +30,19 @@ public class BookService
         return book;
     }
 
-    public void Update(string id, Book bookIn) =>
+    public async Task<Book> Update(string id, Book bookIn, IFormFile file)
+    {
+        var objectId = await _fileService.UploadFile(file);
+
+        bookIn.IconId = objectId.ToString();
+
+        bookIn.IconPath = await _fileService.GetBytesByName(file.FileName);
+
         _mongoDBContext.Books.ReplaceOne(book => book.Id == id, bookIn);
+
+        return bookIn;
+    }
+
 
     public void Remove(Book bookIn, string iconId)
     {
