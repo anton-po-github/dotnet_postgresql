@@ -28,6 +28,7 @@ public static class IdentityServicesExtensions
                 };
             });
 
+
         services.AddCors(opt =>
         {
             opt.AddPolicy("CorsPolicy", policy => policy
