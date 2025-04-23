@@ -17,11 +17,12 @@ jobs:
         ports:
           - 27017:27017
         options: >-
-          --health-cmd="bash -c 'echo \"db.adminCommand({ ping: 1 }).ok\" \
-            | mongosh --quiet mongodb://localhost:27017'"
+          --health-cmd="mongosh mongodb://localhost:27017 \
+            --quiet --eval 'db.adminCommand({ping:1})'"
           --health-interval=10s
           --health-timeout=5s
           --health-retries=5
+          --health-start-period=30s
 
     steps:
       - name: Checkout repository
@@ -60,11 +61,14 @@ jobs:
           project_id: ${{ secrets.GCP_PROJECT_ID }}
 
       - name: Configure Docker
-        run: gcloud auth configure-docker ${{ secrets.GAR_LOCATION }}-docker.pkg.dev --quiet
+        run: gcloud auth configure-docker \
+          ${{ secrets.GAR_LOCATION }}-docker.pkg.dev --quiet
 
       - name: Build and push Docker image
         run: |
-          IMAGE_URI="${{ secrets.GAR_LOCATION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ secrets.GAR_REPOSITORY }}/dotnet_postgresql:${{ github.sha }}"
+          IMAGE_URI="${{ secrets.GAR_LOCATION }}-docker.pkg.dev/\
+          ${{ secrets.GCP_PROJECT_ID }}/${{ secrets.GAR_REPOSITORY }}/\
+          dotnet_postgresql:${{ github.sha }}"
           docker build -t "$IMAGE_URI" -f Dockerfile .
           docker push "$IMAGE_URI"
           echo "IMAGE_URI=$IMAGE_URI" >> "$GITHUB_ENV"
@@ -90,7 +94,8 @@ jobs:
 
       - name: Allow unauthenticated invocations
         run: |
-          gcloud run services add-iam-policy-binding dotnet-postgresql-service \
+          gcloud run services add-iam-policy-binding \
+            dotnet-postgresql-service \
             --member="allUsers" \
             --role="roles/run.invoker" \
             --region="${{ secrets.GAR_LOCATION }}"
