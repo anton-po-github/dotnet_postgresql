@@ -17,8 +17,7 @@ jobs:
         ports:
           - 27017:27017
         options: >-
-          --health-cmd="mongosh mongodb://localhost:27017 \
-            --quiet --eval 'db.adminCommand({ping:1})'"
+          --health-cmd="mongosh mongodb://localhost:27017 --quiet --eval 'db.adminCommand({ping:1})'"
           --health-interval=10s
           --health-timeout=5s
           --health-retries=5
@@ -61,8 +60,7 @@ jobs:
           project_id: ${{ secrets.GCP_PROJECT_ID }}
 
       - name: Configure Docker
-        run: gcloud auth configure-docker \
-          ${{ secrets.GAR_LOCATION }}-docker.pkg.dev --quiet
+        run: gcloud auth configure-docker ${{ secrets.GAR_LOCATION }}-docker.pkg.dev --quiet
 
       - name: Build and push Docker image
         run: |
