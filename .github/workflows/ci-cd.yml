@@ -75,7 +75,8 @@ jobs:
           image: ${{ env.IMAGE_URI }}
           region: ${{ secrets.GAR_LOCATION }}
           env_vars: |
-            ASPNETCORE_URLS=http://*:${PORT}
+            ASPNETCORE_URLS=http://*:$PORT
+            ASPNETCORE_HTTP_PORTS=8080
             ConnectionStrings__ChatMessageConnection=${{ secrets.CHATMSG_CONN }}
             ConnectionStrings__PostgresConnection=${{ secrets.POSTGRES_CONN }}
             ConnectionStrings__UsersConnection=${{ secrets.USERS_CONN }}

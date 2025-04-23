@@ -12,9 +12,10 @@ FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS runtime
 WORKDIR /app
 COPY --from=build /app/out ./
 
-# Гарантируем, что Kestrel подхватит PORT=8080
-ENV ASPNETCORE_URLS=http://+:8080
-
-ENV PORT=8080
+# Указываем, что контейнер слушает порт 8080
+EXPOSE 8080
+ENV PORT=8080  
+# let Cloud Run (и локаль) задавать PORT:  
+ENV ASPNETCORE_URLS=http://*:$PORT  
 
 ENTRYPOINT ["dotnet", "dotnet_postgresql.dll"]
