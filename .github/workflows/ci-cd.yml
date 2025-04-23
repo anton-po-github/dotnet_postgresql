@@ -1,7 +1,8 @@
 name: CI/CD Pipeline
 on:
   push:
-    branches: [main]
+    branches:
+      - main
 
 permissions:
   contents: read
@@ -16,19 +17,27 @@ jobs:
         ports:
           - 27017:27017
         options: >-
-          --health-cmd "bash -c 'echo \"db.adminCommand({ ping: 1 }).ok\" \
+          --health-cmd="bash -c 'echo \"db.adminCommand({ ping: 1 }).ok\" \
             | mongosh --quiet mongodb://localhost:27017'"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
       - name: Setup .NET 9
         uses: actions/setup-dotnet@v3
         with:
           dotnet-version: '9.0.x'
-      - run: dotnet restore
-      - run: dotnet build --no-restore -c Release
+
+      - name: Restore dependencies
+        run: dotnet restore
+
+      - name: Build (Release)
+        run: dotnet build --no-restore -c Release
+
       - name: Run tests
         env:
           MONGODB_URI: mongodb://localhost:27017/BookstoreDb
@@ -39,6 +48,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
+
       - name: Authenticate to GCP
         uses: google-github-actions/auth@v2
         with:
@@ -76,7 +86,7 @@ jobs:
             Token__Key=${{ secrets.TOKEN_KEY }}
             Token__Issuer=${{ secrets.TOKEN_ISSUER }}
             SendGridApiKey=${{ secrets.SENDGRID_API_KEY }}
-          env_vars_update_strategy: merge # объединение переменных с существующими :contentReference[oaicite:11]{index=11}
+          env_vars_update_strategy: merge
 
       - name: Allow unauthenticated invocations
         run: |
