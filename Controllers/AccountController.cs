@@ -48,7 +48,7 @@ public class AccountController : ControllerBase
         };
     }
 
-    [Authorize]
+    // [Authorize]
     [HttpGet("all")]
     public async Task<ActionResult<List<IdentityUser>>> GetAllUsers()
     {
