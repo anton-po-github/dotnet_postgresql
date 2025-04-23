@@ -28,28 +28,15 @@ public static class IdentityServicesExtensions
                 };
             });
 
-        /*         services.AddCors(opt =>
-           {
-               opt.AddPolicy("CorsPolicy", policy =>
-               {
-                   policy.WithOrigins("http://localhost:4200")
-                   .AllowAnyHeader()
-                   .AllowAnyMethod()
-                   .AllowCredentials(); // <-- This is important!
-                                        //  policy.AllowAnyHeader().AllowAnyMethod().WithOrigins("http://localhost:4200");
-                                        // policy.WithOrigins("http://localhost:4200").AllowAnyHeader().AllowAnyOrigin().AllowAnyMethod().AllowAnyOrigin();
-               });
-           }); */
-
         services.AddCors(opt =>
-       {
-           opt.AddPolicy("CorsPolicy", policy => policy
-               .WithOrigins(["http://localhost:4200", "https://ng-dotnet.web.app"])
-               .AllowAnyHeader()
-               .AllowAnyMethod()
-               .AllowCredentials()
-           );
-       });
+        {
+            opt.AddPolicy("CorsPolicy", policy => policy
+                .WithOrigins(["http://localhost:4200", "https://ng-dotnet.web.app"])
+                .AllowAnyHeader()
+                .AllowAnyMethod()
+                .AllowCredentials()
+            );
+        });
 
         return services;
     }
