@@ -80,11 +80,13 @@ jobs:
           env_vars: |
             ASPNETCORE_URLS=http://*:$PORT
             ASPNETCORE_HTTP_PORTS=8080
+            MongoDB__ConnectionString=${{ secrets.MONGODB_CONN }}
+            MongoDB__DatabaseName=BookstoreDb
+            MongoDB__BooksCollectionName=Books
             ConnectionStrings__ChatMessageConnection=${{ secrets.CHATMSG_CONN }}
             ConnectionStrings__PostgresConnection=${{ secrets.POSTGRES_CONN }}
             ConnectionStrings__UsersConnection=${{ secrets.USERS_CONN }}
             ConnectionStrings__IdentityConnection=${{ secrets.IDENTITY_CONN }}
-            ConnectionStrings__MongoConnection=${{ secrets.MONGODB_CONN }}
             Token__Key=${{ secrets.TOKEN_KEY }}
             Token__Issuer=${{ secrets.TOKEN_ISSUER }}
             SendGridApiKey=${{ secrets.SENDGRID_API_KEY }}
