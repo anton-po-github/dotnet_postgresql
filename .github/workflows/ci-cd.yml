@@ -1,11 +1,12 @@
 name: CI/CD Pipeline
 on:
   push:
-    branches: [main]
+    branches:
+      - main
 
 permissions:
-  contents: 'read'
-  id-token: 'write'
+  contents: read
+  id-token: write
 
 jobs:
   build_and_test:
@@ -13,22 +14,28 @@ jobs:
     services:
       mongodb:
         image: mongo:7.0
-        ports: ['27017:27017']
+        ports:
+          - 27017:27017
         options: >-
-          --health-cmd "mongo --eval 'db.adminCommand(\"ping\")'"
+          --health-cmd "bash -c 'echo \"db.adminCommand({ ping: 1 }).ok\" | mongosh --quiet mongodb://localhost:27017'"
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
       - name: Setup .NET 9
         uses: actions/setup-dotnet@v3
         with:
           dotnet-version: '9.0.x'
+
       - name: Restore dependencies
         run: dotnet restore
-      - name: Build release
+
+      - name: Build (Release)
         run: dotnet build --no-restore -c Release
+
       - name: Run tests
         env:
           MONGODB_URI: mongodb://localhost:27017/BookstoreDb
@@ -38,23 +45,29 @@ jobs:
     needs: build_and_test
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
       - name: Authenticate to GCP
         uses: google-github-actions/auth@v2
         with:
           credentials_json: ${{ secrets.GCP_SA_KEY }}
+
       - name: Set up Cloud SDK
         uses: google-github-actions/setup-gcloud@v2
         with:
           project_id: ${{ secrets.GCP_PROJECT_ID }}
+
       - name: Configure Docker
         run: gcloud auth configure-docker ${{ secrets.GAR_LOCATION }}-docker.pkg.dev --quiet
+
       - name: Build and push Docker image
         run: |
           IMAGE_URI="${{ secrets.GAR_LOCATION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ secrets.GAR_REPOSITORY }}/dotnet_postgresql:${{ github.sha }}"
           docker build -t "$IMAGE_URI" -f Dockerfile .
           docker push "$IMAGE_URI"
           echo "IMAGE_URI=$IMAGE_URI" >> "$GITHUB_ENV"
+
       - name: Deploy to Cloud Run
         uses: google-github-actions/deploy-cloudrun@v2
         with:
@@ -71,6 +84,7 @@ jobs:
             Token__Key=${{ secrets.TOKEN_KEY }}
             Token__Issuer=${{ secrets.TOKEN_ISSUER }}
             SendGridApiKey=${{ secrets.SENDGRID_API_KEY }}
+
       - name: Allow unauthenticated invocations
         run: |
           gcloud run services add-iam-policy-binding dotnet-postgresql-service \
