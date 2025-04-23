@@ -15,7 +15,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      - name: Setup .NET 9
+      - name: Setup .NET 9
         uses: actions/setup-dotnet@v3
         with:
           dotnet-version: '9.0.x'
@@ -42,7 +42,7 @@ jobs:
         with:
           credentials_json: ${{ secrets.GCP_SA_KEY }}
 
-      # 2.2) Установка Cloud SDK и проект
+      # 2.2) Установка Cloud SDK и выбор проекта
       - name: Set up Cloud SDK
         uses: google-github-actions/setup-gcloud@v2
         with:
@@ -66,7 +66,7 @@ jobs:
         run: |
           echo "IMAGE_URI is: $IMAGE_URI"
 
-      # 2.6) Деплой в Cloud Run с нужными env_vars
+      # 2.6) Деплой в Cloud Run
       - name: Deploy to Cloud Run
         uses: google-github-actions/deploy-cloudrun@v2
         with:
@@ -79,3 +79,15 @@ jobs:
             ConnectionStrings__PostgresConnection=${{ secrets.POSTGRES_CONN }}
             ConnectionStrings__UsersConnection=${{ secrets.USERS_CONN }}
             ConnectionStrings__IdentityConnection=${{ secrets.IDENTITY_CONN }}
+
+      # 2.7) Разрешение неаутентифицированных вызовов (allUsers invoker)
+      - name: Allow unauthenticated invocations
+        run: |
+          # Добавляем binding:
+          # - members:
+          #   - allUsers
+          #   role: roles/run.invoker
+          gcloud run services add-iam-policy-binding dotnet-postgresql-service \
+            --member="allUsers" \
+            --role="roles/run.invoker" \
+            --region="${{ secrets.GAR_LOCATION }}"
