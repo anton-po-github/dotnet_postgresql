@@ -56,7 +56,10 @@ app.UseStatusCodePagesWithReExecute("/errors/{0}");
 
 app.UseRouting();
 app.UseCors("CorsPolicy");
+
+app.UseAuthentication();
 app.UseAuthorization();
+
 app.MapControllers();
 
 using (var scopeRole = app.Services.CreateScope())

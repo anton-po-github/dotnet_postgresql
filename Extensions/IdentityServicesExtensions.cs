@@ -44,7 +44,7 @@ public static class IdentityServicesExtensions
         services.AddCors(opt =>
        {
            opt.AddPolicy("CorsPolicy", policy => policy
-               .WithOrigins("http://localhost:4200", "https://ng-dotnet.web.app")
+               .WithOrigins(["http://localhost:4200", "https://ng-dotnet.web.app"])
                .AllowAnyHeader()
                .AllowAnyMethod()
                .AllowCredentials()
