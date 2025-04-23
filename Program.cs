@@ -57,8 +57,8 @@ app.UseStatusCodePagesWithReExecute("/errors/{0}");
 app.UseRouting();
 app.UseCors("CorsPolicy");
 
-app.UseAuthentication();
-app.UseAuthorization();
+/* app.UseAuthentication();
+app.UseAuthorization(); */
 
 app.MapControllers();
 
