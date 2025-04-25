@@ -6,6 +6,7 @@ using Microsoft.EntityFrameworkCore;
 
 [ApiController]
 [Route("api/[controller]")]
+[Authorize]
 public class AccountController : ControllerBase
 {
     private readonly UserManager<IdentityUser> _userManager;
@@ -34,8 +35,8 @@ public class AccountController : ControllerBase
         return Ok("You are an admin, congratulations!");
     }
 
-    [Authorize]
-    [HttpGet("GetCurrentUser")]
+
+    [HttpGet("current")]
     public async Task<ActionResult<UserDto>> GetCurrentUser()
     {
         var user = await _userManager.FindByEmailFromClaimsPrinciple(User);
@@ -43,25 +44,25 @@ public class AccountController : ControllerBase
         return new UserDto
         {
             Email = user.Email,
-            Token = await _tokenService.CreateToken(user),
+            Token = await _tokenService.CreateTokenAsync(user),
             UserName = user.UserName,
             Role = await _userManager.GetRolesAsync(user)
         };
     }
 
-    [Authorize]
     [HttpGet("all")]
     public async Task<ActionResult<List<IdentityUser>>> GetAllUsers()
     {
         return await _userManager.Users.ToListAsync();
     }
 
+    [AllowAnonymous]
     [HttpGet("emailexists")]
     public async Task<ActionResult<bool>> CheckEmailExistsAsync([FromQuery] string email)
     {
         return await _userManager.FindByEmailAsync(email) != null;
     }
-
+    [AllowAnonymous]
     [HttpPost("login")]
     public async Task<ActionResult<UserDto>> Login(LoginDto loginDto)
     {
@@ -77,12 +78,13 @@ public class AccountController : ControllerBase
         return new UserDto
         {
             Email = user.Email,
-            Token = await _tokenService.CreateToken(user),
+            Token = await _tokenService.CreateTokenAsync(user),
             UserName = user.UserName,
             Role = await _userManager.GetRolesAsync(user)
         };
     }
 
+    [AllowAnonymous]
     [HttpPost("register")]
     public async Task<ActionResult<UserDto>> Register(RegisterDto registerDto)
     {
@@ -98,7 +100,7 @@ public class AccountController : ControllerBase
         var result = await _userManager.CreateAsync(user, registerDto.Password);
         if (!result.Succeeded) return BadRequest(new ApiResponse(400));
 
-        var addUserToRoleResult = await _userManager.AddToRoleAsync(user, "User");
+        var addUserToRoleResult = await _userManager.AddToRoleAsync(user, "Admin");
         if (!addUserToRoleResult.Succeeded) throw new AppException($"Create user succeeded but could not add user to role {addUserToRoleResult?.Errors?.First()?.Description}");
 
         var confirmLink = $"http://localhost:5477/api/account/confirm-email?email={user.Email}";
@@ -119,12 +121,13 @@ public class AccountController : ControllerBase
         return new UserDto
         {
             Email = user.Email,
-            Token = await _tokenService.CreateToken(user),
+            Token = await _tokenService.CreateTokenAsync(user),
             UserName = user.UserName,
             Role = await _userManager.GetRolesAsync(user)
         };
     }
 
+    [AllowAnonymous]
     [HttpGet("confirm-email")]
     public async Task<IResult> ConfirmEmail([FromQuery] string email)
     {

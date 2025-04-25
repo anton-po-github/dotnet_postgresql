@@ -16,7 +16,7 @@ public class TokenService
         _key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config["Token:Key"]));
     }
 
-    public async Task<string> CreateToken(IdentityUser user)
+    public async Task<string> CreateTokenAsync(IdentityUser user)
     {
 
         var claims = new List<Claim>

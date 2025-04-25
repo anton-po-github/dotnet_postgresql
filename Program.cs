@@ -72,6 +72,40 @@ app.UseEndpoints(endpoints =>
     endpoints.MapHub<ChatHub>("/hubs/chat");
 });
 
+// 12. Dev-only: automatic EF Core migrations
+if (app.Environment.IsDevelopment())
+{
+    using var scope = app.Services.CreateScope();
+    var sp = scope.ServiceProvider;
+    var logger = sp.GetRequiredService<ILogger<Program>>();
+    try
+    {
+        // Apply pending migrations only in Development environment
+        var contexts = new DbContext[]
+        {
+            sp.GetRequiredService<UsersContext>(),
+            sp.GetRequiredService<IdentityContext>(),
+            sp.GetRequiredService<PostgresContext>(),
+            sp.GetRequiredService<ChatMessageContext>()
+        };
+
+        foreach (var ctx in contexts)
+        {
+            var pending = ctx.Database.GetPendingMigrations();
+            if (pending.Any())
+            {
+                logger.LogInformation("Applying {Count} pending migrations for {Context}", pending.Count(), ctx.GetType().Name);
+                ctx.Database.Migrate();
+                logger.LogInformation("Migrations applied to {Context}", ctx.GetType().Name);
+            }
+        }
+    }
+    catch (Exception ex)
+    {
+        logger.LogError(ex, "Error applying migrations in Development");
+    }
+}
+
 // 11. DB migrations & seed data
 using (var scope = app.Services.CreateScope())
 {
@@ -79,12 +113,8 @@ using (var scope = app.Services.CreateScope())
     var logger = servicesProvider.GetRequiredService<ILogger<Program>>();
     try
     {
-        var usersContext = servicesProvider.GetRequiredService<UsersContext>();
-        var identityContext = servicesProvider.GetRequiredService<IdentityContext>();
         var userManager = servicesProvider.GetRequiredService<UserManager<IdentityUser>>();
 
-        await usersContext.Database.MigrateAsync();
-        await identityContext.Database.MigrateAsync();
         await IdentityContextSeed.SeedUsersAsync(userManager);
         await IdentitySeeder.SeedRolesAsync(servicesProvider);
     }
