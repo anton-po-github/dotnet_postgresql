@@ -19,6 +19,7 @@ public class TokenService
     public async Task<string> CreateTokenAsync(IdentityUser user)
     {
 
+        var now = DateTime.UtcNow;
         var claims = new List<Claim>
         {
             new Claim(ClaimTypes.Email, user.Email),
@@ -33,7 +34,9 @@ public class TokenService
         var tokeDesc = new SecurityTokenDescriptor
         {
             Subject = new ClaimsIdentity(claims),
-            Expires = DateTime.Now.AddDays(7),
+            IssuedAt = now,
+            NotBefore = now,
+            Expires = DateTime.UtcNow.AddYears(10),
             SigningCredentials = creds,
             Issuer = _config["Token:Issuer"]
         };

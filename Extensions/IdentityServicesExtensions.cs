@@ -24,6 +24,7 @@ public static class IdentityServicesExtensions
                     IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(config["Token:Key"])),
                     ValidIssuer = config["Token:Issuer"],
                     ValidateIssuer = true,
+                    ClockSkew = TimeSpan.FromMinutes(1),
                     ValidateAudience = false
                 };
             });
