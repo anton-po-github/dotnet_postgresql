@@ -43,6 +43,7 @@ public class BlobService : IBlobService
         }
 
         var bobclient = container.GetBlobClient(fileName);
+
         if (!bobclient.Exists())
         {
             fileContent.Position = 0;
