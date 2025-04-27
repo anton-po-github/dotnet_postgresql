@@ -28,6 +28,7 @@ public static class ApplicationServicesExtensions
         services.AddScoped<FileService>();
         services.AddScoped<EmailService>();
         services.AddScoped<TokenService>();
+        services.AddScoped<ITokenService, TokenService>();
         services.AddScoped<UserService>();
         services.AddScoped<PostgresService>();
         services.AddScoped<IBlobService, BlobService>();

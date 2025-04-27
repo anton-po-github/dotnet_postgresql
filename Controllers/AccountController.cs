@@ -1,3 +1,5 @@
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
 using AutoMapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
@@ -13,14 +15,17 @@ public class AccountController : ControllerBase
     private readonly SignInManager<IdentityUser> _signInManager;
     private readonly TokenService _tokenService;
     private readonly EmailService _emailService;
+    private readonly IdentityContext _identityContext;
     public AccountController(
         UserManager<IdentityUser> userManager,
         SignInManager<IdentityUser> signInManager,
+        IdentityContext identityContext,
         TokenService tokenService,
         EmailService emailService,
         IMapper mapper
         )
     {
+        _identityContext = identityContext;
         _tokenService = tokenService;
         _emailService = emailService;
         _signInManager = signInManager;
@@ -35,7 +40,7 @@ public class AccountController : ControllerBase
         return Ok("You are an admin, congratulations!");
     }
 
-
+    [AllowAnonymous]
     [HttpGet("current")]
     public async Task<ActionResult<UserDto>> GetCurrentUser()
     {
@@ -44,7 +49,7 @@ public class AccountController : ControllerBase
         return new UserDto
         {
             Email = user.Email,
-            Token = await _tokenService.CreateTokenAsync(user),
+            Token = await _tokenService.CreateAccessTokenAsync(user),
             UserName = user.UserName,
             Role = await _userManager.GetRolesAsync(user)
         };
@@ -61,27 +66,6 @@ public class AccountController : ControllerBase
     public async Task<ActionResult<bool>> CheckEmailExistsAsync([FromQuery] string email)
     {
         return await _userManager.FindByEmailAsync(email) != null;
-    }
-    [AllowAnonymous]
-    [HttpPost("login")]
-    public async Task<ActionResult<UserDto>> Login(LoginDto loginDto)
-    {
-        var user = await _userManager.FindByEmailAsync(loginDto.Email);
-        if (user == null) return Unauthorized(new ApiResponse(401));
-
-        var result = await _signInManager.CheckPasswordSignInAsync(user, loginDto.Password, false);
-        if (!result.Succeeded) return Unauthorized(new ApiResponse(401));
-
-        var isEmailConfirmed = await _userManager.IsEmailConfirmedAsync(user);
-        if (!isEmailConfirmed) throw new AppException("Email is not Confirmed");
-
-        return new UserDto
-        {
-            Email = user.Email,
-            Token = await _tokenService.CreateTokenAsync(user),
-            UserName = user.UserName,
-            Role = await _userManager.GetRolesAsync(user)
-        };
     }
 
     [AllowAnonymous]
@@ -100,10 +84,10 @@ public class AccountController : ControllerBase
         var result = await _userManager.CreateAsync(user, registerDto.Password);
         if (!result.Succeeded) return BadRequest(new ApiResponse(400));
 
-        var addUserToRoleResult = await _userManager.AddToRoleAsync(user, "Admin");
+        var addUserToRoleResult = await _userManager.AddToRoleAsync(user, "User");
         if (!addUserToRoleResult.Succeeded) throw new AppException($"Create user succeeded but could not add user to role {addUserToRoleResult?.Errors?.First()?.Description}");
 
-        var confirmLink = $"http://localhost:5477/api/account/confirm-email?email={user.Email}";
+        var confirmLink = $"http://127.0.0.1:8080/api/account/confirm-email?email={user.Email}";
 
         var textEmail = @"
         Hello.
@@ -121,11 +105,100 @@ public class AccountController : ControllerBase
         return new UserDto
         {
             Email = user.Email,
-            Token = await _tokenService.CreateTokenAsync(user),
+            Token = await _tokenService.CreateAccessTokenAsync(user),
             UserName = user.UserName,
             Role = await _userManager.GetRolesAsync(user)
         };
     }
+
+    [AllowAnonymous]
+    [HttpPost("login")]
+    public async Task<ActionResult<UserDto>> Login(LoginDto dto)
+    {
+        var user = await _userManager.FindByEmailAsync(dto.Email);
+        if (user == null || !await _userManager.CheckPasswordAsync(user, dto.Password))
+            return Unauthorized();
+
+        var accessToken = await _tokenService.CreateAccessTokenAsync(user);
+
+        var refreshToken = await _tokenService.CreateRefreshTokenAsync(HttpContext.Connection.RemoteIpAddress.ToString(), user);
+
+        _identityContext.RefreshTokens.Add(refreshToken);
+
+        await _identityContext.SaveChangesAsync();
+
+        return Ok(new
+        {
+            accessToken,
+            refreshToken = refreshToken.Token,
+            UserName = user.UserName,
+            Role = await _userManager.GetRolesAsync(user)
+        });
+    }
+
+    [AllowAnonymous]
+    [HttpPost("refresh")]
+    public async Task<IActionResult> Refresh([FromBody] RefreshRequestDto dto)
+    {
+        // 1) получаем principal из просроченного access
+        var principal = _tokenService.GetPrincipalFromExpiredToken(dto.AccessToken);
+        if (principal == null) return BadRequest("Invalid access token");
+
+        var userId = principal.FindFirstValue(JwtRegisteredClaimNames.Sub);
+        var user = await _userManager.FindByIdAsync(userId!);
+        if (user == null) return Unauthorized();
+
+        // 2) находим refresh-token в БД
+        var storedToken = await _identityContext.RefreshTokens
+            .SingleOrDefaultAsync(rt => rt.Token == dto.RefreshToken && !rt.Revoked.HasValue);
+        if (storedToken == null || storedToken.Expires <= DateTime.UtcNow)
+            return Unauthorized("Invalid or expired refresh token");
+
+        // 3) отзываем старый и сохраняем новый
+        storedToken.Revoked = DateTime.UtcNow;
+        storedToken.RevokedByIp = HttpContext.Connection.RemoteIpAddress.ToString();
+
+        var newRefreshToken = await _tokenService.CreateRefreshTokenAsync(HttpContext.Connection.RemoteIpAddress.ToString(), user);
+        storedToken.ReplacedByToken = newRefreshToken.Token;
+
+        _identityContext.RefreshTokens.Add(newRefreshToken);
+
+        await _identityContext.SaveChangesAsync();
+
+        // 4) создаём новый access и отдаем оба
+        var newAccessToken = await _tokenService.CreateAccessTokenAsync(user);
+
+        return Ok(new
+        {
+            accessToken = newAccessToken,
+            refreshToken = newRefreshToken.Token,
+            UserName = user.UserName,
+            Role = await _userManager.GetRolesAsync(user)
+        });
+    }
+
+
+    /*   [AllowAnonymous]
+      [HttpPost("login")]
+      public async Task<ActionResult<UserDto>> Login(LoginDto loginDto)
+      {
+          var user = await _userManager.FindByEmailAsync(loginDto.Email);
+          if (user == null) return Unauthorized(new ApiResponse(401));
+
+          var result = await _signInManager.CheckPasswordSignInAsync(user, loginDto.Password, false);
+          if (!result.Succeeded) return Unauthorized(new ApiResponse(401));
+
+          var isEmailConfirmed = await _userManager.IsEmailConfirmedAsync(user);
+          if (!isEmailConfirmed) throw new AppException("Email is not Confirmed");
+
+          return new UserDto
+          {
+              Email = user.Email,
+              Token = await _tokenService.CreateTokenAsync(user),
+              UserName = user.UserName,
+              Role = await _userManager.GetRolesAsync(user)
+          };
+      } */
 
     [AllowAnonymous]
     [HttpGet("confirm-email")]
