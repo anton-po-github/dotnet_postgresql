@@ -1,6 +1,8 @@
 bin/
 obj/
 
+backups/
+
 appsettings.json
 *.db
 .azure/
