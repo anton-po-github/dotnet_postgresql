@@ -11,7 +11,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace dotnet_postgresql.Migrations.Postgres
 {
     [DbContext(typeof(PostgresContext))]
-    [Migration("20250428181823_AddPostgresBooks")]
+    [Migration("20250428182725_AddPostgresBooks")]
     partial class AddPostgresBooks
     {
         /// <inheritdoc />

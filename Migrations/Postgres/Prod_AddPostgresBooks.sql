@@ -45,9 +45,22 @@ START TRANSACTION;
 
 DO $EF$
 BEGIN
-    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20250428181823_AddPostgresBooks') THEN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20250428182725_AddPostgresBooks') THEN
+    CREATE TABLE books (
+        "Id" uuid NOT NULL,
+        name text NOT NULL,
+        price integer NOT NULL,
+        description text NOT NULL,
+        CONSTRAINT "PK_books" PRIMARY KEY ("Id")
+    );
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20250428182725_AddPostgresBooks') THEN
     INSERT INTO "__EFMigrationsHistory" ("MigrationId", "ProductVersion")
-    VALUES ('20250428181823_AddPostgresBooks', '8.0.2');
+    VALUES ('20250428182725_AddPostgresBooks', '8.0.2');
     END IF;
 END $EF$;
 COMMIT;
