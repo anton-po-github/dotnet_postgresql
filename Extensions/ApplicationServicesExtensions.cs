@@ -1,41 +1,48 @@
+using dotnet_postgresql.DbContexts;
+using dotnet_postgresql.DbContexts.Identity;
+using dotnet_postgresql.Services;
 using Microsoft.EntityFrameworkCore;
-public static class ApplicationServicesExtensions
+
+namespace dotnet_postgresql.Extensions
 {
-    public static IServiceCollection AddApplicationServices(this IServiceCollection services, IConfiguration config)
+    public static class ApplicationServicesExtensions
     {
-
-        services.AddDbContext<IdentityContext>(x =>
+        public static IServiceCollection AddApplicationServices(this IServiceCollection services, IConfiguration config)
         {
-            x.UseNpgsql(config.GetConnectionString("IdentityConnection"));
-        });
 
-        services.AddDbContext<UsersContext>(x =>
-        {
-            x.UseNpgsql(config.GetConnectionString("UsersConnection"));
-        });
+            services.AddDbContext<IdentityContext>(x =>
+            {
+                x.UseNpgsql(config.GetConnectionString("IdentityConnection"));
+            });
 
-        services.AddDbContext<PostgresContext>(x =>
-        {
-            x.UseNpgsql(config.GetConnectionString("PostgresConnection"));
-        });
+            services.AddDbContext<UsersContext>(x =>
+            {
+                x.UseNpgsql(config.GetConnectionString("UsersConnection"));
+            });
 
-        services.AddDbContext<ChatMessageContext>(x =>
-        {
-            x.UseNpgsql(config.GetConnectionString("ChatMessageConnection"));
-        });
+            services.AddDbContext<PostgresContext>(x =>
+            {
+                x.UseNpgsql(config.GetConnectionString("PostgresConnection"));
+            });
 
-        services.AddScoped<BookService>();
-        services.AddScoped<FileService>();
-        services.AddScoped<EmailService>();
-        services.AddScoped<TokenService>();
-        services.AddScoped<ITokenService, TokenService>();
-        services.AddScoped<UserService>();
-        services.AddScoped<PostgresService>();
-        services.AddScoped<IBlobService, BlobService>();
-        services.AddScoped(typeof(IGenericService<>), (typeof(GenericService<>)));
+            services.AddDbContext<ChatMessageContext>(x =>
+            {
+                x.UseNpgsql(config.GetConnectionString("ChatMessageConnection"));
+            });
 
-        services.AddControllers();
+            services.AddScoped<BookService>();
+            services.AddScoped<FileService>();
+            services.AddScoped<EmailService>();
+            services.AddScoped<TokenService>();
+            services.AddScoped<ITokenService, TokenService>();
+            services.AddScoped<UserService>();
+            services.AddScoped<PostgresService>();
+            services.AddScoped<IBlobService, BlobService>();
+            services.AddScoped(typeof(IGenericService<>), (typeof(GenericService<>)));
 
-        return services;
+            services.AddControllers();
+
+            return services;
+        }
     }
 }

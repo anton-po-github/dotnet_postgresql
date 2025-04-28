@@ -1,18 +1,22 @@
+using dotnet_postgresql.Entities;
 using Microsoft.EntityFrameworkCore;
 
-public class UsersContext : DbContext
+namespace dotnet_postgresql.DbContexts
 {
-    protected readonly IConfiguration _config;
-
-    public UsersContext(IConfiguration configuration)
+    public class UsersContext : DbContext
     {
-        _config = configuration;
-    }
+        protected readonly IConfiguration _config;
 
-    protected override void OnConfiguring(DbContextOptionsBuilder options)
-    {
-        options.UseNpgsql(_config.GetConnectionString("UsersConnection"));
-    }
+        public UsersContext(IConfiguration configuration)
+        {
+            _config = configuration;
+        }
 
-    public DbSet<User> Users { get; set; }
+        protected override void OnConfiguring(DbContextOptionsBuilder options)
+        {
+            options.UseNpgsql(_config.GetConnectionString("UsersConnection"));
+        }
+
+        public DbSet<User> Users { get; set; }
+    }
 }

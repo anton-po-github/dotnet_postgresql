@@ -1,18 +1,21 @@
 using Microsoft.AspNetCore.Identity;
 
-public static class IdentitySeeder
+namespace dotnet_postgresql.Helpers
 {
-    public static async Task SeedRolesAsync(IServiceProvider serviceProvider)
+    public static class IdentitySeeder
     {
-        var roleManager = serviceProvider.GetRequiredService<RoleManager<IdentityRole>>();
-
-        string[] roleNames = { "Admin", "User", "Manager" };
-
-        foreach (var roleName in roleNames)
+        public static async Task SeedRolesAsync(IServiceProvider serviceProvider)
         {
-            if (!await roleManager.RoleExistsAsync(roleName))
+            var roleManager = serviceProvider.GetRequiredService<RoleManager<IdentityRole>>();
+
+            string[] roleNames = { "Admin", "User", "Manager" };
+
+            foreach (var roleName in roleNames)
             {
-                await roleManager.CreateAsync(new IdentityRole(roleName));
+                if (!await roleManager.RoleExistsAsync(roleName))
+                {
+                    await roleManager.CreateAsync(new IdentityRole(roleName));
+                }
             }
         }
     }

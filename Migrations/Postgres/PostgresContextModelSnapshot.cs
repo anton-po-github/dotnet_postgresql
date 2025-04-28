@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
+using dotnet_postgresql.DbContexts;
 
 #nullable disable
 
@@ -21,7 +22,7 @@ namespace dotnet_postgresql.Migrations.Postgres
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
-            modelBuilder.Entity("PostgresBooks", b =>
+            modelBuilder.Entity("dotnet_postgresql.Entities.PostgresBooks", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -43,7 +44,7 @@ namespace dotnet_postgresql.Migrations.Postgres
                     b.ToTable("books");
                 });
 
-            modelBuilder.Entity("PostgresProducts", b =>
+            modelBuilder.Entity("dotnet_postgresql.Entities.PostgresProducts", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -65,7 +66,7 @@ namespace dotnet_postgresql.Migrations.Postgres
                     b.ToTable("products");
                 });
 
-            modelBuilder.Entity("PostgresUsers", b =>
+            modelBuilder.Entity("dotnet_postgresql.Entities.PostgresUsers", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()

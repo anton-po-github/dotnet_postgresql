@@ -1,6 +1,11 @@
-public class MongoDBSettings
+
+namespace dotnet_postgresql.mongoDB
 {
-    public string BooksCollectionName { get; set; }
-    public string ConnectionString { get; set; }
-    public string DatabaseName { get; set; }
+    public class MongoDBSettings
+    {
+        public string BooksCollectionName { get; set; }
+        public string ConnectionString { get; set; }
+        public string DatabaseName { get; set; }
+    }
+
 }

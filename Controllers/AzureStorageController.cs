@@ -1,55 +1,59 @@
+using dotnet_postgresql.Services;
 using Microsoft.AspNetCore.Mvc;
 
-[ApiController]
-[Route("api/[controller]")]
-public class AzureStorageController : Controller
+namespace dotnet_postgresql.Controllers
 {
-    private readonly IBlobService _blobService;
-    private readonly string _connectionString;
-    private readonly string _container;
-    public AzureStorageController(IBlobService blobService, IConfiguration config)
+    [ApiController]
+    [Route("api/[controller]")]
+    public class AzureStorageController : Controller
     {
-        _blobService = blobService;
-
-        _connectionString = config["AzureStorageConfig:StorageConnection"];
-
-        _container = config["AzureStorageConfig:ContainerName"];
-    }
-
-    [HttpGet("ListFiles")]
-    public async Task<List<string>> ListFiles()
-    {
-        return await _blobService.GetAllDocuments(_connectionString, _container);
-    }
-
-    [Route("InsertFile")]
-    [HttpPost]
-    public async Task<bool> InsertFile([FromForm] IFormFile asset)
-    {
-        if (asset != null)
+        private readonly IBlobService _blobService;
+        private readonly string _connectionString;
+        private readonly string _container;
+        public AzureStorageController(IBlobService blobService, IConfiguration config)
         {
-            Stream stream = asset.OpenReadStream();
+            _blobService = blobService;
 
-            await _blobService.UploadDocument(_connectionString, _container, asset.FileName, stream);
+            _connectionString = config["AzureStorageConfig:StorageConnection"];
 
-            return true;
+            _container = config["AzureStorageConfig:ContainerName"];
         }
 
-        return false;
-    }
+        [HttpGet("ListFiles")]
+        public async Task<List<string>> ListFiles()
+        {
+            return await _blobService.GetAllDocuments(_connectionString, _container);
+        }
 
-    [HttpGet("DownloadFile/{fileName}")]
-    public async Task<IActionResult> DownloadFile(string fileName)
-    {
-        var content = await _blobService.GetDocument(_connectionString, _container, fileName);
+        [Route("InsertFile")]
+        [HttpPost]
+        public async Task<bool> InsertFile([FromForm] IFormFile asset)
+        {
+            if (asset != null)
+            {
+                Stream stream = asset.OpenReadStream();
 
-        return File(content, System.Net.Mime.MediaTypeNames.Application.Octet, fileName);
-    }
+                await _blobService.UploadDocument(_connectionString, _container, asset.FileName, stream);
 
-    [Route("DeleteFile/{fileName}")]
-    [HttpGet]
-    public async Task<bool> DeleteFile(string fileName)
-    {
-        return await _blobService.DeleteDocument(_connectionString, _container, fileName);
+                return true;
+            }
+
+            return false;
+        }
+
+        [HttpGet("DownloadFile/{fileName}")]
+        public async Task<IActionResult> DownloadFile(string fileName)
+        {
+            var content = await _blobService.GetDocument(_connectionString, _container, fileName);
+
+            return File(content, System.Net.Mime.MediaTypeNames.Application.Octet, fileName);
+        }
+
+        [Route("DeleteFile/{fileName}")]
+        [HttpGet]
+        public async Task<bool> DeleteFile(string fileName)
+        {
+            return await _blobService.DeleteDocument(_connectionString, _container, fileName);
+        }
     }
 }

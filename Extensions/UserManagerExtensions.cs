@@ -2,12 +2,15 @@ using System.Security.Claims;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
-public static class UserManagerExtensions
+namespace dotnet_postgresql.Extensions
 {
-    public static async Task<IdentityUser> FindByEmailFromClaimsPrinciple(this UserManager<IdentityUser> input, ClaimsPrincipal user)
+    public static class UserManagerExtensions
     {
-        var email = user.FindFirstValue(ClaimTypes.Email);
+        public static async Task<IdentityUser> FindByEmailFromClaimsPrinciple(this UserManager<IdentityUser> input, ClaimsPrincipal user)
+        {
+            var email = user.FindFirstValue(ClaimTypes.Email);
 
-        return await input.Users.SingleOrDefaultAsync(x => x.Email == email);
+            return await input.Users.SingleOrDefaultAsync(x => x.Email == email);
+        }
     }
 }

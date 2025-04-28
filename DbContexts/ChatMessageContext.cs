@@ -1,17 +1,22 @@
+using dotnet_postgresql.Entities;
 using Microsoft.EntityFrameworkCore;
 
-public class ChatMessageContext : DbContext
+namespace dotnet_postgresql.DbContexts
 {
-    protected readonly IConfiguration _config;
-
-    public ChatMessageContext(IConfiguration configuration)
+    public class ChatMessageContext : DbContext
     {
-        _config = configuration;
-    }
-    protected override void OnConfiguring(DbContextOptionsBuilder options)
-    {
-        options.UseNpgsql(_config.GetConnectionString("ChatMessageConnection"));
-    }
+        protected readonly IConfiguration _config;
 
-    public DbSet<ChatMessage> ChatMessages { get; set; } = null!;
+        public ChatMessageContext(IConfiguration configuration)
+        {
+            _config = configuration;
+        }
+        protected override void OnConfiguring(DbContextOptionsBuilder options)
+        {
+            options.UseNpgsql(_config.GetConnectionString("ChatMessageConnection"));
+        }
+
+        public DbSet<ChatMessage> ChatMessages { get; set; } = null!;
+    }
 }
+

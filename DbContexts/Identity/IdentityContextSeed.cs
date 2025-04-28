@@ -1,19 +1,23 @@
 using Microsoft.AspNetCore.Identity;
 
-public class IdentityContextSeed
+namespace dotnet_postgresql.DbContexts.Identity
 {
-    public static async Task SeedUsersAsync(UserManager<IdentityUser> userManager)
+    public class IdentityContextSeed
     {
-        if (!userManager.Users.Any())
+        public static async Task SeedUsersAsync(UserManager<IdentityUser> userManager)
         {
-            var user = new IdentityUser
+            if (!userManager.Users.Any())
             {
-                Email = "bob@test.com",
-                UserName = "Bob",
+                var user = new IdentityUser
+                {
+                    Email = "bob@test.com",
+                    UserName = "Bob",
 
-            };
+                };
 
-            await userManager.CreateAsync(user, "Pa$$w0rd");
+                await userManager.CreateAsync(user, "Pa$$w0rd");
+            }
         }
     }
 }
+

@@ -1,21 +1,25 @@
+using dotnet_postgresql.DbContexts;
 using Microsoft.AspNetCore.Mvc;
 
-[ApiController]
-[Route("api/[controller]")]
-public class ChatController : ControllerBase
+namespace dotnet_postgresql.Controllers
 {
-    private readonly ChatMessageContext _chatMessageContext;
-    public ChatController(ChatMessageContext chatMessageContext) => _chatMessageContext = chatMessageContext;
-
-    [HttpGet("messages")]
-    public IActionResult GetMessages()
+    [ApiController]
+    [Route("api/[controller]")]
+    public class ChatController : ControllerBase
     {
-        var messages = _chatMessageContext.ChatMessages
-            .OrderBy(m => m.Timestamp)
-            .Take(100)
-            .Select(m => new { m.User, m.Text })
-            .ToList();
+        private readonly ChatMessageContext _chatMessageContext;
+        public ChatController(ChatMessageContext chatMessageContext) => _chatMessageContext = chatMessageContext;
 
-        return Ok(messages);
+        [HttpGet("messages")]
+        public IActionResult GetMessages()
+        {
+            var messages = _chatMessageContext.ChatMessages
+                .OrderBy(m => m.Timestamp)
+                .Take(100)
+                .Select(m => new { m.User, m.Text })
+                .ToList();
+
+            return Ok(messages);
+        }
     }
 }

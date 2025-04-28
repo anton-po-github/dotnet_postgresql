@@ -1,20 +1,25 @@
+using dotnet_postgresql.Entities;
 using Microsoft.EntityFrameworkCore;
 
-public class PostgresContext : DbContext
+namespace dotnet_postgresql.DbContexts
 {
-    protected readonly IConfiguration _config;
-
-    public PostgresContext(IConfiguration configuration)
+    public class PostgresContext : DbContext
     {
-        _config = configuration;
+        protected readonly IConfiguration _config;
+
+        public PostgresContext(IConfiguration configuration)
+        {
+            _config = configuration;
+        }
+
+        protected override void OnConfiguring(DbContextOptionsBuilder options)
+        {
+            options.UseNpgsql(_config.GetConnectionString("PostgresConnection"));
+        }
+
+        public DbSet<PostgresUsers> users { get; set; }
+        public DbSet<PostgresProducts> products { get; set; }
+        public DbSet<PostgresBooks> books { get; set; }
     }
 
-    protected override void OnConfiguring(DbContextOptionsBuilder options)
-    {
-        options.UseNpgsql(_config.GetConnectionString("PostgresConnection"));
-    }
-
-    public DbSet<PostgresUsers> users { get; set; }
-    public DbSet<PostgresProducts> products { get; set; }
-    public DbSet<PostgresBooks> books { get; set; }
 }
