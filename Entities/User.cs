@@ -1,6 +1,7 @@
 
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 
 public class User : BaseEntity
@@ -84,4 +85,15 @@ public class CreateRequest
     [EmailAddress]
     public string Email { get; set; }
     public Byte[]? PhotoUrl { get; set; }
+}
+
+public class UserProfile
+{
+    public int Id { get; set; }
+    public string IdentityUserId { get; set; }
+    public IdentityUser IdentityUser { get; set; }
+
+    public string FirstName { get; set; }
+    public string LastName { get; set; }
+    public DateTime DateOfBirth { get; set; }
 }

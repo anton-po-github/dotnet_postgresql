@@ -18,4 +18,6 @@ public class IdentityContext : IdentityDbContext<IdentityUser, IdentityRole, str
     public DbSet<IdentityUser> Identity { get; set; }
 
     public DbSet<RefreshToken> RefreshTokens { get; set; }
+
+    public DbSet<UserProfile> UserProfiles { get; set; }
 }
