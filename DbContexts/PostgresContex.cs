@@ -2,7 +2,6 @@ using Microsoft.EntityFrameworkCore;
 
 public class PostgresContext : DbContext
 {
-
     protected readonly IConfiguration _config;
 
     public PostgresContext(IConfiguration configuration)
@@ -17,6 +16,5 @@ public class PostgresContext : DbContext
 
     public DbSet<PostgresUsers> users { get; set; }
     public DbSet<PostgresProducts> products { get; set; }
-
-
+    //public DbSet<PostgresBooks> books { get; set; }
 }
