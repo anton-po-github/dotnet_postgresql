@@ -21,6 +21,13 @@ namespace dotnet_postgresql.Entities
         public string description { get; set; }
     }
 
+    public class PostgresGoods : BaseEntity
+    {
+        public string name { get; set; }
+        public int price { get; set; }
+        public string description { get; set; }
+    }
+
     public class UpdatePostgresUserModel
     {
         public string name { get; set; }
