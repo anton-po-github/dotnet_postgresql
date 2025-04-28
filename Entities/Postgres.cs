@@ -10,12 +10,12 @@ public class PostgresProducts : BaseEntity
     public string user_name { get; set; }
 }
 
-/* public class PostgresBooks : BaseEntity
+public class PostgresBooks : BaseEntity
 {
     public string name { get; set; }
     public int price { get; set; }
     public string description { get; set; }
-} */
+}
 
 public class UpdatePostgresUserModel
 {
