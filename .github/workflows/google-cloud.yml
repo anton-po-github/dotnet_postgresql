@@ -89,6 +89,8 @@ jobs:
             ConnectionStrings__IdentityConnection=${{ secrets.IDENTITY_CONN }}
             Token__Key=${{ secrets.TOKEN_KEY }}
             Token__Issuer=${{ secrets.TOKEN_ISSUER }}
+            Token__Issuer=${{ secrets.TOKEN_ISSUER }}
+            Token__Audience=${{ secrets.TOKEN_AUDIENCE }}
             SendGridApiKey=${{ secrets.SENDGRID_API_KEY }}
           env_vars_update_strategy: merge
 
