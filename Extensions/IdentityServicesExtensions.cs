@@ -9,7 +9,7 @@ namespace dotnet_postgresql.Extensions
 {
     public static class IdentityServicesExtensions
     {
-        public static IServiceCollection AddIdentityServices(this IServiceCollection services, IConfiguration config)
+        public static IServiceCollection AddIdentityServices(this IServiceCollection services, IConfiguration config, IWebHostEnvironment env)
         {
             var builder = services.AddIdentityCore<IdentityUser>();
 
@@ -18,20 +18,6 @@ namespace dotnet_postgresql.Extensions
             builder.AddSignInManager<SignInManager<IdentityUser>>();
             builder.AddRoleManager<RoleManager<IdentityRole>>();
             builder.AddRoles<IdentityRole>();
-
-            /*    services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-                  .AddJwtBearer(opt =>
-                  {
-                      opt.TokenValidationParameters = new TokenValidationParameters
-                      {
-                          ValidateIssuerSigningKey = true,
-                          IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(config["Token:Key"])),
-                          ValidIssuer = config["Token:Issuer"],
-                          ValidateIssuer = true,
-                          ClockSkew = TimeSpan.FromMinutes(1),
-                          ValidateAudience = false
-                      };
-                  }); */
 
             services.AddAuthentication(options =>
             {
@@ -72,29 +58,13 @@ namespace dotnet_postgresql.Extensions
                         ValidateLifetime = false,
                         ValidateIssuerSigningKey = true,
                         ValidIssuer = config["Token:Issuer"],
-                        ValidAudience = config["Token:Audience"],
+                        ValidAudience = env.IsProduction() ? "https://dotnet-postgresql-service-864171160719.us-central1.run.app"
+                                        : "http://127.0.0.1:8080",
                         IssuerSigningKey = new SymmetricSecurityKey(
                             Encoding.UTF8.GetBytes(config["Token:Key"])
                         )
                     };
 
-                    var key = Encoding.UTF8.GetBytes(config["Token:Key"]);
-
-                    //  opt.TokenValidationParameters.RoleClaimType = ClaimTypes.Role;
-
-                    // opt.TokenValidationParameters.RoleClaimType = "role";
-
-                    /*   opt.TokenValidationParameters = new TokenValidationParameters
-                      {
-                          ValidateIssuerSigningKey = true,
-                          IssuerSigningKey = new SymmetricSecurityKey(key),
-                          ValidateIssuer = true,
-                          ValidIssuer = config["Token:Issuer"],
-                          ValidateAudience = true,
-                          ValidAudience = config["Token:Audience"],
-                          ValidateLifetime = false,
-                          ClockSkew = TimeSpan.Zero
-                      }; */
                 });
 
             return services;

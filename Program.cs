@@ -51,7 +51,7 @@ JwtSecurityTokenHandler.DefaultMapInboundClaims = false;
 services.AddApplicationServices(configuration);
 services.AddSignalR();
 services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
-services.AddIdentityServices(configuration);
+services.AddIdentityServices(configuration, builder.Environment);
 
 // 4. EF Core DbContexts, Identity, etc. inside AddApplicationServices / AddIdentityServices
 
