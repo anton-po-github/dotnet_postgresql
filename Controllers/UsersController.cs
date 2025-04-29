@@ -14,7 +14,6 @@ namespace dotnet_postgresql.Controllers
     {
         private UserService _userService;
         private IMapper _mapper;
-
         private readonly IGenericService<User> _usersGenericService;
 
         public UsersController(
