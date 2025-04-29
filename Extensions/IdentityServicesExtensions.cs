@@ -40,6 +40,29 @@ namespace dotnet_postgresql.Extensions
             })
                 .AddJwtBearer(options =>
                 {
+
+                    // ваши TokenValidationParameters…
+                    options.Events = new JwtBearerEvents
+                    {
+                        OnMessageReceived = ctx =>
+                        {
+                            var token = ctx.Request.Headers["Authorization"]
+                                            .FirstOrDefault()?.Split(" ").Last();
+                            Console.WriteLine($"[JWT] OnMessageReceived. Token = {token?.Substring(0, 10)}…");
+                            return Task.CompletedTask;
+                        },
+                        OnTokenValidated = ctx =>
+                        {
+                            Console.WriteLine($"[JWT] Успешно валидирован для {ctx.Principal.Identity.Name}");
+                            return Task.CompletedTask;
+                        },
+                        OnAuthenticationFailed = ctx =>
+                        {
+                            Console.WriteLine($"[JWT] Ошибка аутентификации: {ctx.Exception.Message}");
+                            return Task.CompletedTask;
+                        }
+                    };
+
                     options.SaveToken = true;
                     options.TokenValidationParameters.RoleClaimType = ClaimTypes.Role;
                     options.TokenValidationParameters = new TokenValidationParameters

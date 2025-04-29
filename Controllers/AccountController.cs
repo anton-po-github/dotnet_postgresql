@@ -125,10 +125,10 @@ namespace dotnet_postgresql.Controllers
 
         // [AllowAnonymous]
         [HttpPost("login")]
-        public async Task<ActionResult<UserDto>> Login(LoginDto dto)
+        public async Task<ActionResult<UserDto>> Login(LoginDto loginDto)
         {
-            var user = await _userManager.FindByEmailAsync(dto.Email);
-            if (user == null || !await _userManager.CheckPasswordAsync(user, dto.Password))
+            var user = await _userManager.FindByEmailAsync(loginDto.Email);
+            if (user == null || !await _userManager.CheckPasswordAsync(user, loginDto.Password))
                 return Unauthorized();
 
             var accessToken = await _tokenService.CreateAccessTokenAsync(user);
@@ -150,12 +150,12 @@ namespace dotnet_postgresql.Controllers
 
         //  [AllowAnonymous]
         [HttpPost("refresh")]
-        public async Task<IActionResult> Refresh([FromBody] RefreshRequestDto dto)
+        public async Task<IActionResult> Refresh(RefreshRequestDto refreshRequestDto)
         {
-            _logger.LogInformation("Refresh: AccessToken={token}, RefreshToken={rt}", dto.AccessToken, dto.RefreshToken);
+            _logger.LogInformation("Refresh: AccessToken={token}, RefreshToken={rt}", refreshRequestDto.AccessToken, refreshRequestDto.RefreshToken);
 
             // 1) получаем principal из просроченного access
-            var principal = _tokenService.GetPrincipalFromExpiredToken(dto.AccessToken);
+            var principal = _tokenService.GetPrincipalFromExpiredToken(refreshRequestDto.AccessToken);
             if (principal == null) return BadRequest("Invalid access token");
 
             var userId = principal.FindFirstValue(JwtRegisteredClaimNames.Sub);
@@ -164,7 +164,7 @@ namespace dotnet_postgresql.Controllers
 
             // 2) находим refresh-token в БД
             var storedToken = await _identityContext.RefreshTokens
-                .SingleOrDefaultAsync(rt => rt.Token == dto.RefreshToken && !rt.Revoked.HasValue);
+                .SingleOrDefaultAsync(rt => rt.Token == refreshRequestDto.RefreshToken && !rt.Revoked.HasValue);
             if (storedToken == null || storedToken.Expires <= DateTime.UtcNow)
                 return Unauthorized("Invalid or expired refresh token");
 
@@ -190,8 +190,6 @@ namespace dotnet_postgresql.Controllers
                 Role = await _userManager.GetRolesAsync(user)
             });
         }
-
-
         /*   [AllowAnonymous]
           [HttpPost("login")]
           public async Task<ActionResult<UserDto>> Login(LoginDto loginDto)
@@ -213,7 +211,6 @@ namespace dotnet_postgresql.Controllers
                   Role = await _userManager.GetRolesAsync(user)
               };
           } */
-
         //  [AllowAnonymous]
         [HttpGet("confirm-email")]
         public async Task<IResult> ConfirmEmail([FromQuery] string email)
