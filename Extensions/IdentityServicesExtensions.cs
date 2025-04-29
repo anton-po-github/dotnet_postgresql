@@ -26,8 +26,6 @@ namespace dotnet_postgresql.Extensions
             })
                 .AddJwtBearer(options =>
                 {
-
-                    // ваши TokenValidationParameters…
                     options.Events = new JwtBearerEvents
                     {
                         OnMessageReceived = ctx =>
