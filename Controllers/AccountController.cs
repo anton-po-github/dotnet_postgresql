@@ -48,7 +48,6 @@ namespace dotnet_postgresql.Controllers
             return Ok("You are an admin, congratulations!");
         }
 
-        [AllowAnonymous]
         [HttpGet("current")]
         public async Task<ActionResult<UserDto>> GetCurrentUser()
         {

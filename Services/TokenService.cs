@@ -44,8 +44,8 @@ namespace dotnet_postgresql.Services
                 audience: _config["Token:Audience"],
                 claims: claims,
                 notBefore: DateTime.UtcNow,
-                // expires: DateTime.UtcNow.AddMinutes(4),   // access токен – 15 мин
-                expires: DateTime.UtcNow.AddYears(4),   // access токен – 15 мин
+                expires: DateTime.UtcNow.AddMinutes(5),   // access токен – 15 мин
+                                                          // expires: DateTime.UtcNow.AddYears(4),
                 signingCredentials: creds
             );
             return new JwtSecurityTokenHandler().WriteToken(token);
