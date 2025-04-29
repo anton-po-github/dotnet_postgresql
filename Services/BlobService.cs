@@ -80,7 +80,6 @@ namespace dotnet_postgresql.Services
             {
                 throw new FileNotFoundException();
             }
-
         }
 
         public async Task<bool> DeleteDocument(string connectionString, string containerName, string fileName)
