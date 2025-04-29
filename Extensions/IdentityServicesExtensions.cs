@@ -69,7 +69,7 @@ namespace dotnet_postgresql.Extensions
                     {
                         ValidateIssuer = true,
                         ValidateAudience = true,
-                        ValidateLifetime = true,
+                        ValidateLifetime = false,
                         ValidateIssuerSigningKey = true,
                         ValidIssuer = config["Token:Issuer"],
                         ValidAudience = config["Token:Audience"],
@@ -92,7 +92,7 @@ namespace dotnet_postgresql.Extensions
                           ValidIssuer = config["Token:Issuer"],
                           ValidateAudience = true,
                           ValidAudience = config["Token:Audience"],
-                          ValidateLifetime = true,
+                          ValidateLifetime = false,
                           ClockSkew = TimeSpan.Zero
                       }; */
                 });

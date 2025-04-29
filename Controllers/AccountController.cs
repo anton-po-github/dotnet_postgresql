@@ -148,7 +148,7 @@ namespace dotnet_postgresql.Controllers
             });
         }
 
-        //  [AllowAnonymous]
+        //[Authorize]
         [HttpPost("refresh")]
         public async Task<IActionResult> Refresh(RefreshRequestDto refreshRequestDto)
         {
@@ -156,17 +156,29 @@ namespace dotnet_postgresql.Controllers
 
             // 1) получаем principal из просроченного access
             var principal = _tokenService.GetPrincipalFromExpiredToken(refreshRequestDto.AccessToken);
-            if (principal == null) return BadRequest("Invalid access token");
+            if (principal == null)
+            {
+                _logger.LogWarning("Не удалось распарсить AccessToken");
+                return Unauthorized();
+            }
 
             var userId = principal.FindFirstValue(JwtRegisteredClaimNames.Sub);
+            _logger.LogInformation("Пользователь из токена: {userId}", userId);
+
             var user = await _userManager.FindByIdAsync(userId!);
             if (user == null) return Unauthorized();
 
-            // 2) находим refresh-token в БД
             var storedToken = await _identityContext.RefreshTokens
-                .SingleOrDefaultAsync(rt => rt.Token == refreshRequestDto.RefreshToken && !rt.Revoked.HasValue);
-            if (storedToken == null || storedToken.Expires <= DateTime.UtcNow)
-                return Unauthorized("Invalid or expired refresh token");
+            .SingleOrDefaultAsync(rt => rt.Token == refreshRequestDto.RefreshToken);
+
+            _logger.LogInformation("Найден RefreshToken в БД: {found}", storedToken != null);
+
+            if (storedToken == null) return Unauthorized();   // 401, если не нашли
+
+            /*   var storedToken = await _identityContext.RefreshTokens
+                  .SingleOrDefaultAsync(rt => rt.Token == refreshRequestDto.RefreshToken && !rt.Revoked.HasValue);
+              if (storedToken == null || storedToken.Expires <= DateTime.UtcNow)
+                  return Unauthorized("Invalid or expired refresh token"); */
 
             // 3) отзываем старый и сохраняем новый
             storedToken.Revoked = DateTime.UtcNow;
