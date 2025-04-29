@@ -73,7 +73,6 @@ namespace dotnet_postgresql.Controllers
             return await _userManager.Users.ToListAsync();
         }
 
-        //  [AllowAnonymous]
         [HttpGet("emailexists")]
         public async Task<ActionResult<bool>> CheckEmailExistsAsync([FromQuery] string email)
         {
