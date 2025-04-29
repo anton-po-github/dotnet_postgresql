@@ -16,9 +16,10 @@ namespace dotnet_postgresql.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    [Authorize]
+    //  [Authorize]
     public class AccountController : ControllerBase
     {
+        private readonly ILogger<AccountController> _logger;
         private readonly UserManager<IdentityUser> _userManager;
         private readonly SignInManager<IdentityUser> _signInManager;
         private readonly TokenService _tokenService;
@@ -30,6 +31,7 @@ namespace dotnet_postgresql.Controllers
             IdentityContext identityContext,
             TokenService tokenService,
             EmailService emailService,
+            ILogger<AccountController> logger,
             IMapper mapper
             )
         {
@@ -38,7 +40,7 @@ namespace dotnet_postgresql.Controllers
             _emailService = emailService;
             _signInManager = signInManager;
             _userManager = userManager;
-
+            _logger = logger;
         }
 
         [Authorize(Roles = "Admin")]
@@ -68,14 +70,14 @@ namespace dotnet_postgresql.Controllers
             return await _userManager.Users.ToListAsync();
         }
 
-        [AllowAnonymous]
+        //  [AllowAnonymous]
         [HttpGet("emailexists")]
         public async Task<ActionResult<bool>> CheckEmailExistsAsync([FromQuery] string email)
         {
             return await _userManager.FindByEmailAsync(email) != null;
         }
 
-        [AllowAnonymous]
+        //  [AllowAnonymous]
         [HttpPost("register")]
         public async Task<ActionResult<UserDto>> Register(RegisterDto registerDto)
         {
@@ -118,7 +120,7 @@ namespace dotnet_postgresql.Controllers
             };
         }
 
-        [AllowAnonymous]
+        // [AllowAnonymous]
         [HttpPost("login")]
         public async Task<ActionResult<UserDto>> Login(LoginDto dto)
         {
@@ -143,10 +145,12 @@ namespace dotnet_postgresql.Controllers
             });
         }
 
-        [AllowAnonymous]
+        //  [AllowAnonymous]
         [HttpPost("refresh")]
         public async Task<IActionResult> Refresh([FromBody] RefreshRequestDto dto)
         {
+            _logger.LogInformation("Refresh: AccessToken={token}, RefreshToken={rt}", dto.AccessToken, dto.RefreshToken);
+
             // 1) получаем principal из просроченного access
             var principal = _tokenService.GetPrincipalFromExpiredToken(dto.AccessToken);
             if (principal == null) return BadRequest("Invalid access token");
@@ -207,7 +211,7 @@ namespace dotnet_postgresql.Controllers
               };
           } */
 
-        [AllowAnonymous]
+        //  [AllowAnonymous]
         [HttpGet("confirm-email")]
         public async Task<IResult> ConfirmEmail([FromQuery] string email)
         {

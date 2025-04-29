@@ -19,7 +19,6 @@ namespace dotnet_postgresql.Entities
         public IdentityUser User { get; set; }
     }
 
-
     public class RefreshRequestDto
     {
         public string AccessToken { get; set; }
