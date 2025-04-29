@@ -20,7 +20,6 @@ namespace dotnet_postgresql.Services
         private readonly IConfiguration _config;
         private readonly UserManager<IdentityUser> _userManager;
         private readonly IWebHostEnvironment _env;
-
         public TokenService(IConfiguration config, UserManager<IdentityUser> userManager, IWebHostEnvironment env)
         {
             _config = config;
