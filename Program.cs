@@ -9,6 +9,7 @@ using dotnet_postgresql.Errors;
 using dotnet_postgresql.DbContexts;
 using dotnet_postgresql.DbContexts.Identity;
 using dotnet_postgresql.Helpers;
+using System.IdentityModel.Tokens.Jwt;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -40,6 +41,10 @@ var mongoSettings = builder.Configuration
 builder.Services.AddSingleton(mongoSettings);
 builder.Services.AddSingleton<IMongoClient>(sp =>
     new MongoClient(mongoSettings.ConnectionString));
+
+JwtSecurityTokenHandler.DefaultMapInboundClaims = false;
+// либо
+//JwtSecurityTokenHandler.DefaultInboundClaimTypeMap.Clear(); 
 
 
 // 3. Application services, AutoMapper, SignalR, Identity, etc.
