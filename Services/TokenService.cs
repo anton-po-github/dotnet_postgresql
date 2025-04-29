@@ -43,9 +43,9 @@ namespace dotnet_postgresql.Services
 
             var token = new JwtSecurityToken(
                 issuer: _config["Token:Issuer"],
-                /*   audience: _env.IsProduction()
+                   audience: _env.IsProduction()
                   ? "https://dotnet-postgresql-service-864171160719.us-central1.run.app"
-                  : "http://127.0.0.1:8080", */
+                  : "http://127.0.0.1:8080",
                 claims: claims,
                 notBefore: DateTime.UtcNow,
                 expires: DateTime.UtcNow.AddMinutes(15),
@@ -72,10 +72,10 @@ namespace dotnet_postgresql.Services
             var key = Encoding.UTF8.GetBytes(_config["Token:Key"]);
             var tokenValidationParameters = new TokenValidationParameters
             {
-                ValidateAudience = false,
-                /*  ValidAudience = _env.IsProduction()
+                ValidateAudience = true,
+                ValidAudience = _env.IsProduction()
                  ? "https://dotnet-postgresql-service-864171160719.us-central1.run.app"
-                 : "http://127.0.0.1:8080", */
+                 : "http://127.0.0.1:8080",
                 ValidateIssuer = true,
                 ValidIssuer = _config["Token:Issuer"],
                 ValidateIssuerSigningKey = true,
