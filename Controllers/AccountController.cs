@@ -55,6 +55,9 @@ namespace dotnet_postgresql.Controllers
         {
             var user = await _userManager.FindByEmailFromClaimsPrinciple(User);
 
+            if (user == null)
+                return Unauthorized(new { message = "User not found or token is invalid" });
+
             return new UserDto
             {
                 Email = user.Email,
