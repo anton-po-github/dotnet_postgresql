@@ -7,7 +7,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace dotnet_postgresql.Migrations.ChatMessage
 {
     /// <inheritdoc />
-    public partial class AddChatMessagesTable : Migration
+    public partial class InitIChatMessage : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)

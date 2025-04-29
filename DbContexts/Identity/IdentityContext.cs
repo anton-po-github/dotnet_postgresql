@@ -22,7 +22,7 @@ namespace dotnet_postgresql.DbContexts.Identity
 
         public DbSet<RefreshToken> RefreshTokens { get; set; }
 
-        public DbSet<UserProfile> UserProfiles { get; set; }
+        //  public DbSet<UserProfile> UserProfiles { get; set; }
     }
 
 }

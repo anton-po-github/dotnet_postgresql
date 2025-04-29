@@ -7,10 +7,17 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace dotnet_postgresql.Migrations.Identity
 {
     /// <inheritdoc />
-    public partial class AddUserProfileTable : Migration
+    public partial class RemoveUserProfiles : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
+        {
+            migrationBuilder.DropTable(
+                name: "UserProfiles");
+        }
+
+        /// <inheritdoc />
+        protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.CreateTable(
                 name: "UserProfiles",
@@ -19,9 +26,9 @@ namespace dotnet_postgresql.Migrations.Identity
                     Id = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     IdentityUserId = table.Column<string>(type: "text", nullable: false),
+                    DateOfBirth = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     FirstName = table.Column<string>(type: "text", nullable: false),
-                    LastName = table.Column<string>(type: "text", nullable: false),
-                    DateOfBirth = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
+                    LastName = table.Column<string>(type: "text", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -38,13 +45,6 @@ namespace dotnet_postgresql.Migrations.Identity
                 name: "IX_UserProfiles_IdentityUserId",
                 table: "UserProfiles",
                 column: "IdentityUserId");
-        }
-
-        /// <inheritdoc />
-        protected override void Down(MigrationBuilder migrationBuilder)
-        {
-            migrationBuilder.DropTable(
-                name: "UserProfiles");
         }
     }
 }

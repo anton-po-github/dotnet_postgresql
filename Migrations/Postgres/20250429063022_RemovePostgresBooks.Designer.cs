@@ -12,8 +12,8 @@ using dotnet_postgresql.DbContexts;
 namespace dotnet_postgresql.Migrations.Postgres
 {
     [DbContext(typeof(PostgresContext))]
-    [Migration("20250428193356_AddPostgresGoods")]
-    partial class AddPostgresGoods
+    [Migration("20250429063022_RemovePostgresBooks")]
+    partial class RemovePostgresBooks
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -24,50 +24,6 @@ namespace dotnet_postgresql.Migrations.Postgres
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
-
-            modelBuilder.Entity("dotnet_postgresql.Entities.PostgresBooks", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<string>("description")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("name")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<int>("price")
-                        .HasColumnType("integer");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("books");
-                });
-
-            modelBuilder.Entity("dotnet_postgresql.Entities.PostgresGoods", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<string>("description")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("name")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<int>("price")
-                        .HasColumnType("integer");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("goods");
-                });
 
             modelBuilder.Entity("dotnet_postgresql.Entities.PostgresProducts", b =>
                 {

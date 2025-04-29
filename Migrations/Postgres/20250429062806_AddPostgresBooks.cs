@@ -6,13 +6,13 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace dotnet_postgresql.Migrations.Postgres
 {
     /// <inheritdoc />
-    public partial class AddPostgresGoods : Migration
+    public partial class AddPostgresBooks : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.CreateTable(
-                name: "goods",
+                name: "books",
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
@@ -22,7 +22,7 @@ namespace dotnet_postgresql.Migrations.Postgres
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_goods", x => x.Id);
+                    table.PrimaryKey("PK_books", x => x.Id);
                 });
         }
 
@@ -30,7 +30,7 @@ namespace dotnet_postgresql.Migrations.Postgres
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
-                name: "goods");
+                name: "books");
         }
     }
 }

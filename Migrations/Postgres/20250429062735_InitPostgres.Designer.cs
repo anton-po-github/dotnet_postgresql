@@ -12,7 +12,7 @@ using dotnet_postgresql.DbContexts;
 namespace dotnet_postgresql.Migrations.Postgres
 {
     [DbContext(typeof(PostgresContext))]
-    [Migration("20250428193054_InitPostgres")]
+    [Migration("20250429062735_InitPostgres")]
     partial class InitPostgres
     {
         /// <inheritdoc />
@@ -24,28 +24,6 @@ namespace dotnet_postgresql.Migrations.Postgres
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
-
-            modelBuilder.Entity("dotnet_postgresql.Entities.PostgresBooks", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<string>("description")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("name")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<int>("price")
-                        .HasColumnType("integer");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("books");
-                });
 
             modelBuilder.Entity("dotnet_postgresql.Entities.PostgresProducts", b =>
                 {
