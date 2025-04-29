@@ -9,7 +9,7 @@ namespace dotnet_postgresql.Extensions
 {
     public static class IdentityServicesExtensions
     {
-        public static IServiceCollection AddIdentityServices(this IServiceCollection services, IConfiguration config, IWebHostEnvironment env)
+        public static IServiceCollection AddIdentityServices(this IServiceCollection services, IConfiguration config)
         {
             var builder = services.AddIdentityCore<IdentityUser>();
 
@@ -56,8 +56,7 @@ namespace dotnet_postgresql.Extensions
                         ValidateLifetime = false,
                         ValidateIssuerSigningKey = true,
                         ValidIssuer = config["Token:Issuer"],
-                        ValidAudience = env.IsProduction() ? "https://dotnet-postgresql-service-864171160719.us-central1.run.app"
-                                           : "http://127.0.0.1:8080",
+                        ValidAudience = config["Token:Audience"],
                         IssuerSigningKey = new SymmetricSecurityKey(
                             Encoding.UTF8.GetBytes(config["Token:Key"])
                         )

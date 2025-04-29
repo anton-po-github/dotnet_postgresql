@@ -19,12 +19,10 @@ namespace dotnet_postgresql.Services
     {
         private readonly IConfiguration _config;
         private readonly UserManager<IdentityUser> _userManager;
-        private readonly IWebHostEnvironment _env;
-        public TokenService(IConfiguration config, UserManager<IdentityUser> userManager, IWebHostEnvironment env)
+        public TokenService(IConfiguration config, UserManager<IdentityUser> userManager)
         {
             _config = config;
             _userManager = userManager;
-            _env = env;
         }
 
         public async Task<string> CreateAccessTokenAsync(IdentityUser user)
@@ -43,9 +41,7 @@ namespace dotnet_postgresql.Services
 
             var token = new JwtSecurityToken(
                 issuer: _config["Token:Issuer"],
-                   audience: _env.IsProduction()
-                  ? "https://dotnet-postgresql-service-864171160719.us-central1.run.app"
-                  : "http://127.0.0.1:8080",
+                audience: _config["Token:Audience"],
                 claims: claims,
                 notBefore: DateTime.UtcNow,
                 expires: DateTime.UtcNow.AddMinutes(15),
@@ -59,7 +55,7 @@ namespace dotnet_postgresql.Services
             var refreshToken = new RefreshToken
             {
                 Token = Convert.ToBase64String(RandomNumberGenerator.GetBytes(64)),
-                Expires = DateTime.UtcNow.AddDays(7),     // refresh – на 7 дней
+                Expires = DateTime.UtcNow.AddDays(365),
                 Created = DateTime.UtcNow,
                 CreatedByIp = ipAddress,
                 UserId = user.Id
@@ -72,13 +68,11 @@ namespace dotnet_postgresql.Services
             var key = Encoding.UTF8.GetBytes(_config["Token:Key"]);
             var tokenValidationParameters = new TokenValidationParameters
             {
-                ValidateAudience = true,
-                ValidAudience = _env.IsProduction()
-                 ? "https://dotnet-postgresql-service-864171160719.us-central1.run.app"
-                 : "http://127.0.0.1:8080",
                 ValidateIssuer = true,
-                ValidIssuer = _config["Token:Issuer"],
+                ValidateAudience = true,
                 ValidateIssuerSigningKey = true,
+                ValidIssuer = _config["Token:Issuer"],
+                ValidAudience = _config["Token:Audience"],
                 IssuerSigningKey = new SymmetricSecurityKey(key),
                 ValidateLifetime = false          // игнорируем срок жизни
             };
