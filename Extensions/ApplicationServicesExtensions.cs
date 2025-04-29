@@ -9,7 +9,6 @@ namespace dotnet_postgresql.Extensions
     {
         public static IServiceCollection AddApplicationServices(this IServiceCollection services, IConfiguration config)
         {
-
             services.AddDbContext<IdentityContext>(x =>
             {
                 x.UseNpgsql(config.GetConnectionString("IdentityConnection"));
