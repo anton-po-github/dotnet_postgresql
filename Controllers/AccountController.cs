@@ -53,7 +53,12 @@ namespace dotnet_postgresql.Controllers
         [HttpGet("current")]
         public async Task<ActionResult<UserDto>> GetCurrentUser()
         {
-            var user = await _userManager.FindByEmailFromClaimsPrinciple(User);
+            var userId = User.FindFirstValue(JwtRegisteredClaimNames.Sub);
+
+            if (string.IsNullOrEmpty(userId))
+                return Unauthorized(new { message = "User not found or token is invalid" }); ;
+
+            var user = await _userManager.FindByIdAsync(userId);
 
             if (user == null)
                 return Unauthorized(new { message = "User not found or token is invalid" });

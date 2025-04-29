@@ -3,6 +3,8 @@ obj/
 
 backups/
 
+publish
+publish.zip
 appsettings.json
 *.db
 .azure/
