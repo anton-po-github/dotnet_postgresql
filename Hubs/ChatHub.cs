@@ -1,47 +1,42 @@
-using dotnet_postgresql.DbContexts;
-using dotnet_postgresql.Entities;
 using Microsoft.AspNetCore.SignalR;
 
-namespace dotnet_postgresql.Hubs
+public class ChatHub : Hub
 {
-    public class ChatHub : Hub
+    private readonly ChatMessageContext _chatMessageContext;
+
+    public ChatHub(ChatMessageContext chatMessageContext)
     {
-        private readonly ChatMessageContext _chatMessageContext;
+        _chatMessageContext = chatMessageContext;
+    }
 
-        public ChatHub(ChatMessageContext chatMessageContext)
+    public async Task SendMessage(string user, string message)
+    {
+        var chatMessage = new ChatMessage
         {
-            _chatMessageContext = chatMessageContext;
-        }
+            User = user,
+            Text = message,
+            Timestamp = DateTime.UtcNow
+        };
 
-        public async Task SendMessage(string user, string message)
-        {
-            var chatMessage = new ChatMessage
-            {
-                User = user,
-                Text = message,
-                Timestamp = DateTime.UtcNow
-            };
+        _chatMessageContext.ChatMessages.Add(chatMessage);
 
-            _chatMessageContext.ChatMessages.Add(chatMessage);
+        await _chatMessageContext.SaveChangesAsync();
 
-            await _chatMessageContext.SaveChangesAsync();
+        await Clients.All.SendAsync("ReceiveMessage", user, message);
 
-            await Clients.All.SendAsync("ReceiveMessage", user, message);
+        await Clients.All.SendAsync("NewMessageNotification", user, message);
+    }
 
-            await Clients.All.SendAsync("NewMessageNotification", user, message);
-        }
+    public override async Task OnConnectedAsync()
+    {
+        var recentMessages = _chatMessageContext.ChatMessages
+        .OrderBy(m => m.Timestamp)
+        .Take(50)
+        .Select(m => new { m.User, m.Text })
+        .ToList();
 
-        public override async Task OnConnectedAsync()
-        {
-            var recentMessages = _chatMessageContext.ChatMessages
-            .OrderBy(m => m.Timestamp)
-            .Take(50)
-            .Select(m => new { m.User, m.Text })
-            .ToList();
+        await Clients.Caller.SendAsync("LoadHistory", recentMessages);
 
-            await Clients.Caller.SendAsync("LoadHistory", recentMessages);
-
-            await base.OnConnectedAsync();
-        }
+        await base.OnConnectedAsync();
     }
 }

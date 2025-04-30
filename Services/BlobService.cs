@@ -1,114 +1,112 @@
 using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Models;
 
-namespace dotnet_postgresql.Services
+public interface IBlobService
 {
-    public interface IBlobService
+    public Task<List<string>> GetAllDocuments(string connectionString, string containerName);
+    Task UploadDocument(string connectionString, string containerName, string fileName, Stream fileContent);
+    Task<Stream> GetDocument(string connectionString, string containerName, string fileName);
+    Task<bool> DeleteDocument(string connectionString, string containerName, string fileName);
+}
+
+public class BlobService : IBlobService
+{
+    public async Task<List<string>> GetAllDocuments(string connectionString, string containerName)
     {
-        public Task<List<string>> GetAllDocuments(string connectionString, string containerName);
-        Task UploadDocument(string connectionString, string containerName, string fileName, Stream fileContent);
-        Task<Stream> GetDocument(string connectionString, string containerName, string fileName);
-        Task<bool> DeleteDocument(string connectionString, string containerName, string fileName);
+        var container = GetContainer(connectionString, containerName);
+
+        if (!await container.ExistsAsync())
+        {
+            return new List<string>();
+        }
+
+        List<string> blobs = new();
+
+        await foreach (BlobItem blobItem in container.GetBlobsAsync())
+        {
+            blobs.Add(blobItem.Name);
+        }
+        return blobs;
     }
 
-    public class BlobService : IBlobService
+    public async Task UploadDocument(string connectionString, string containerName, string fileName, Stream fileContent)
     {
-        public async Task<List<string>> GetAllDocuments(string connectionString, string containerName)
+        var container = GetContainer(connectionString, containerName);
+
+        if (!await container.ExistsAsync())
         {
-            var container = GetContainer(connectionString, containerName);
+            BlobServiceClient blobServiceClient = new(connectionString);
 
-            if (!await container.ExistsAsync())
-            {
-                return new List<string>();
-            }
+            await blobServiceClient.CreateBlobContainerAsync(containerName);
 
-            List<string> blobs = new();
-
-            await foreach (BlobItem blobItem in container.GetBlobsAsync())
-            {
-                blobs.Add(blobItem.Name);
-            }
-            return blobs;
+            container = blobServiceClient.GetBlobContainerClient(containerName);
         }
 
-        public async Task UploadDocument(string connectionString, string containerName, string fileName, Stream fileContent)
+        var bobclient = container.GetBlobClient(fileName);
+
+        if (!bobclient.Exists())
         {
-            var container = GetContainer(connectionString, containerName);
-
-            if (!await container.ExistsAsync())
-            {
-                BlobServiceClient blobServiceClient = new(connectionString);
-
-                await blobServiceClient.CreateBlobContainerAsync(containerName);
-
-                container = blobServiceClient.GetBlobContainerClient(containerName);
-            }
-
-            var bobclient = container.GetBlobClient(fileName);
-
-            if (!bobclient.Exists())
-            {
-                fileContent.Position = 0;
-                await container.UploadBlobAsync(fileName, fileContent);
-            }
-            else
-            {
-                fileContent.Position = 0;
-                await bobclient.UploadAsync(fileContent, overwrite: true);
-            }
+            fileContent.Position = 0;
+            await container.UploadBlobAsync(fileName, fileContent);
         }
-        public async Task<Stream> GetDocument(string connectionString, string containerName, string fileName)
+        else
         {
-            var container = GetContainer(connectionString, containerName);
+            fileContent.Position = 0;
+            await bobclient.UploadAsync(fileContent, overwrite: true);
+        }
+    }
+    public async Task<Stream> GetDocument(string connectionString, string containerName, string fileName)
+    {
+        var container = GetContainer(connectionString, containerName);
 
-            if (await container.ExistsAsync())
+        if (await container.ExistsAsync())
+        {
+            var blobClient = container.GetBlobClient(fileName);
+
+            if (blobClient.Exists())
             {
-                var blobClient = container.GetBlobClient(fileName);
+                var content = await blobClient.DownloadStreamingAsync();
 
-                if (blobClient.Exists())
-                {
-                    var content = await blobClient.DownloadStreamingAsync();
-
-                    return content.Value.Content;
-                }
-                else
-                {
-                    throw new FileNotFoundException();
-                }
+                return content.Value.Content;
             }
             else
             {
                 throw new FileNotFoundException();
             }
         }
-
-        public async Task<bool> DeleteDocument(string connectionString, string containerName, string fileName)
+        else
         {
-            var container = GetContainer(connectionString, containerName);
-
-            if (!await container.ExistsAsync())
-            {
-                return false;
-            }
-
-            var blobClient = container.GetBlobClient(fileName);
-
-            if (await blobClient.ExistsAsync())
-            {
-                await blobClient.DeleteIfExistsAsync();
-                return true;
-            }
-            else
-            {
-                return false;
-            }
-        }
-
-        private static BlobContainerClient GetContainer(string connectionString, string containerName)
-        {
-            BlobServiceClient blobServiceClient = new(connectionString);
-
-            return blobServiceClient.GetBlobContainerClient(containerName);
+            throw new FileNotFoundException();
         }
     }
+
+    public async Task<bool> DeleteDocument(string connectionString, string containerName, string fileName)
+    {
+        var container = GetContainer(connectionString, containerName);
+
+        if (!await container.ExistsAsync())
+        {
+            return false;
+        }
+
+        var blobClient = container.GetBlobClient(fileName);
+
+        if (await blobClient.ExistsAsync())
+        {
+            await blobClient.DeleteIfExistsAsync();
+            return true;
+        }
+        else
+        {
+            return false;
+        }
+    }
+
+    private static BlobContainerClient GetContainer(string connectionString, string containerName)
+    {
+        BlobServiceClient blobServiceClient = new(connectionString);
+
+        return blobServiceClient.GetBlobContainerClient(containerName);
+    }
 }
+

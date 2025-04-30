@@ -1,52 +1,48 @@
-﻿﻿using dotnet_postgresql.Entities;
-using MongoDB.Driver;
+﻿﻿using MongoDB.Driver;
 using MongoDB.Driver.GridFS;
 
-namespace dotnet_postgresql.mongoDB
+public class MongoDBContext
 {
-    public class MongoDBContext
+    private readonly IMongoDatabase _database = null;
+    private readonly GridFSBucket _bucket = null;
+    private readonly MongoDBSettings _databaseSettings = null;
+
+    public MongoDBContext(MongoDBSettings databaseSettings)
     {
-        private readonly IMongoDatabase _database = null;
-        private readonly GridFSBucket _bucket = null;
-        private readonly MongoDBSettings _databaseSettings = null;
+        var client = new MongoClient(databaseSettings.ConnectionString);
 
-        public MongoDBContext(MongoDBSettings databaseSettings)
+        _databaseSettings = databaseSettings;
+        _database = client.GetDatabase(databaseSettings.DatabaseName);
+
+        var gridFsBucketOptions = new GridFSBucketOptions()
         {
-            var client = new MongoClient(databaseSettings.ConnectionString);
+            BucketName = "images",
+            ChunkSizeBytes = 1048576, // 1МБ
+        };
 
-            _databaseSettings = databaseSettings;
-            _database = client.GetDatabase(databaseSettings.DatabaseName);
+        _bucket = new GridFSBucket(_database, gridFsBucketOptions);
+    }
 
-            var gridFsBucketOptions = new GridFSBucketOptions()
-            {
-                BucketName = "images",
-                ChunkSizeBytes = 1048576, // 1МБ
-            };
-
-            _bucket = new GridFSBucket(_database, gridFsBucketOptions);
+    public IMongoCollection<Book> Books
+    {
+        get
+        {
+            return _database.GetCollection<Book>(_databaseSettings.BooksCollectionName);
         }
+    }
 
-        public IMongoCollection<Book> Books
+    public GridFSBucket Bucket
+    {
+        get
         {
-            get
-            {
-                return _database.GetCollection<Book>(_databaseSettings.BooksCollectionName);
-            }
+            return _bucket;
         }
-
-        public GridFSBucket Bucket
+    }
+    public IMongoDatabase MongoDatabase
+    {
+        get
         {
-            get
-            {
-                return _bucket;
-            }
-        }
-        public IMongoDatabase MongoDatabase
-        {
-            get
-            {
-                return _database;
-            }
+            return _database;
         }
     }
 }
