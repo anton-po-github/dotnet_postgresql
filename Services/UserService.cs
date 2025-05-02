@@ -5,12 +5,15 @@ public class UserService
 {
     private UsersContext _userContext;
     private readonly IMapper _mapper;
+    private readonly ICurrentUserService _currentUserService;
 
     public UserService(
         UsersContext userContext,
+        ICurrentUserService currentUserService,
         IMapper mapper)
     {
         _userContext = userContext;
+        _currentUserService = currentUserService;
         _mapper = mapper;
     }
 
@@ -38,6 +41,7 @@ public class UserService
             LastName = addUser.LastName,
             Email = addUser.Email,
             Phone = "937-99-92",
+            OwnerId = _currentUserService.UserId!,
             PhotoUrl = ConvertIFormFileToByteArray(addUser.File)
         };
 

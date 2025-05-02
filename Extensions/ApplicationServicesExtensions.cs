@@ -24,6 +24,8 @@ public static class ApplicationServicesExtensions
             x.UseNpgsql(config.GetConnectionString("ChatMessageConnection"));
         });
 
+        services.AddHttpContextAccessor();
+        services.AddScoped<ICurrentUserService, CurrentUserService>();
         services.AddScoped<BookService>();
         services.AddScoped<FileService>();
         services.AddScoped<EmailService>();
