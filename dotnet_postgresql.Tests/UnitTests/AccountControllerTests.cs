@@ -1,9 +1,12 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using AutoMapper;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
+using Moq;
 
 public class AccountControllerTests
 {
@@ -154,4 +157,3 @@ public class AccountControllerTests
         Assert.Equal("access_token", userDto.Token);
     }
 }
-
