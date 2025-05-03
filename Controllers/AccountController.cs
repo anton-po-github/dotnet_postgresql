@@ -60,6 +60,7 @@ public class AccountController : ControllerBase
             Email = user.Email,
             Token = await _tokenService.CreateAccessTokenAsync(user),
             UserName = user.UserName,
+            IdentityUserId = userId,
             Role = await _userManager.GetRolesAsync(user)
         };
     }

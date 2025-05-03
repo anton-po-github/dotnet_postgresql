@@ -1,19 +1,18 @@
 ﻿using System.Text.Json;
 using AutoMapper;
+using Microsoft.AspNetCore.Identity;
 
 public class UserService
 {
     private UsersContext _userContext;
     private readonly IMapper _mapper;
-    private readonly ICurrentUserService _currentUserService;
 
     public UserService(
         UsersContext userContext,
-        ICurrentUserService currentUserService,
+        UserManager<IdentityUser> userManager,
         IMapper mapper)
     {
         _userContext = userContext;
-        _currentUserService = currentUserService;
         _mapper = mapper;
     }
 
@@ -27,7 +26,7 @@ public class UserService
         return getUser(id);
     }
 
-    public void Create(AddUpdateUser addUser)
+    public void Create(AddUpdateUser addUser, string userId)
     {
         // validate
         if (_userContext.Users.Any(x => x.Email == addUser.Email))
@@ -41,7 +40,7 @@ public class UserService
             LastName = addUser.LastName,
             Email = addUser.Email,
             Phone = "937-99-92",
-            OwnerId = _currentUserService.UserId!,
+            OwnerId = userId,
             PhotoUrl = ConvertIFormFileToByteArray(addUser.File)
         };
 

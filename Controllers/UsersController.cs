@@ -1,4 +1,6 @@
-﻿using AutoMapper;
+﻿using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using AutoMapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -47,16 +49,16 @@ public class UsersController : ControllerBase
     }
 
     [HttpPost]
-    //  public IActionResult Create(CreateRequest model)
     public IActionResult Create([FromForm] AddUpdateUser addUser)
     {
-        _userService.Create(addUser);
+        var userId = User.FindFirstValue(JwtRegisteredClaimNames.Sub);
+
+        _userService.Create(addUser, userId);
 
         return Ok(new { message = "User created" });
     }
 
     [HttpPut("{id}")]
-    // public IActionResult Update(Guid id, UpdateRequest model)
     public IActionResult Update(Guid id, [FromForm] AddUpdateUser updateUser)
     {
 

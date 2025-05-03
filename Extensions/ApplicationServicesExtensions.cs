@@ -25,7 +25,6 @@ public static class ApplicationServicesExtensions
         });
 
         services.AddHttpContextAccessor();
-        services.AddScoped<ICurrentUserService, CurrentUserService>();
         services.AddScoped<BookService>();
         services.AddScoped<FileService>();
         services.AddScoped<EmailService>();

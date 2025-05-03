@@ -56,6 +56,7 @@ public class UserDto
     public string Email { get; set; }
     public string UserName { get; set; }
     public string Token { get; set; }
+    public string IdentityUserId { get; set; }
     public IList<string> Role { get; set; }
 }
 
