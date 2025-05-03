@@ -88,10 +88,10 @@ public class UserService
         _userContext.SaveChanges();
     }
 
-    private byte[] ConvertIFormFileToByteArray(IFormFile file)
+    private byte[] ConvertIFormFileToByteArray(IFormFile? file)
     {
         if (file == null || file.Length == 0)
-            return null;
+            throw new AppException("File not found."); ;
 
         using (var memoryStream = new MemoryStream())
         {

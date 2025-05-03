@@ -5,15 +5,15 @@ using Microsoft.AspNetCore.Mvc;
 public class AzureStorageController : Controller
 {
     private readonly IBlobService _blobService;
-    private readonly string _connectionString;
-    private readonly string _container;
+    private readonly string _connectionString = "";
+    private readonly string _container = "";
     public AzureStorageController(IBlobService blobService, IConfiguration config)
     {
         _blobService = blobService;
 
-        _connectionString = config["AzureStorageConfig:StorageConnection"];
+        // _connectionString = config["AzureStorageConfig:StorageConnection"];
 
-        _container = config["AzureStorageConfig:ContainerName"];
+        //   _container = config["AzureStorageConfig:ContainerName"];
     }
 
     [HttpGet("ListFiles")]

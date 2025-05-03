@@ -34,6 +34,7 @@ public class BooksController : ControllerBase
     public async Task<Book> Create([FromForm(Name = "icon")] IFormFile file, [FromForm(Name = "body")] string body)
     {
         Book book = JsonConvert.DeserializeObject<Book>(body);
+        if (book == null) throw new AppException("Book not found.");
 
         return await _bookService.Create(book, file);
     }
@@ -58,7 +59,7 @@ public class BooksController : ControllerBase
     {
         var book = _bookService.GetOneBook(id);
 
-        if (book == null)
+        if (book == null || string.IsNullOrEmpty(book.IconId))
         {
             return false;
         }

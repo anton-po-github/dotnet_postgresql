@@ -2,7 +2,7 @@ using MongoDB.Driver;
 
 public class BookService
 {
-    private readonly MongoDBContext _mongoDBContext = null;
+    private readonly MongoDBContext _mongoDBContext;
     private readonly FileService _fileService;
 
     public BookService(MongoDBSettings mongoDBSettings, FileService fileService)

@@ -14,21 +14,36 @@ public interface ITokenService
 
 public class TokenService : ITokenService
 {
-    private readonly IConfiguration _config;
+    private readonly string _issuer;
+    private readonly string _audience;
+    private readonly SymmetricSecurityKey _signingKey;
     private readonly UserManager<IdentityUser> _userManager;
     private readonly IWebHostEnvironment _env;
+
     public TokenService(IConfiguration config, UserManager<IdentityUser> userManager, IWebHostEnvironment env)
     {
-        _config = config;
         _userManager = userManager;
         _env = env;
+
+        // Retrieve and validate the token key from configuration
+        var tokenKey = config["Token:Key"]
+                      ?? throw new InvalidOperationException("Configuration value 'Token:Key' is missing");
+        _signingKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(tokenKey));
+
+        // Read issuer and audience
+        _issuer = config["Token:Issuer"]
+                  ?? throw new InvalidOperationException("Configuration value 'Token:Issuer' is missing");
+        _audience = _env.IsProduction()
+                    ? "https://anton-posgres-app.azurewebsites.net"
+                    : "http://127.0.0.1:8080";
     }
 
     public async Task<string> CreateAccessTokenAsync(IdentityUser user)
     {
-        var key = Encoding.UTF8.GetBytes(_config["Token:Key"]);
-        var creds = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256);
+        // Create signing credentials once
+        var creds = new SigningCredentials(_signingKey, SecurityAlgorithms.HmacSha256);
 
+        // Build claims
         var roles = await _userManager.GetRolesAsync(user);
         var claims = new List<Claim>
         {
@@ -38,16 +53,16 @@ public class TokenService : ITokenService
         };
         claims.AddRange(roles.Select(r => new Claim(ClaimTypes.Role, r)));
 
+        // Create the JWT
         var token = new JwtSecurityToken(
-            issuer: _config["Token:Issuer"],
-               audience: _env.IsProduction()
-              ? "https://anton-posgres-app.azurewebsites.net"
-              : "http://127.0.0.1:8080",
+            issuer: _issuer,
+            audience: _audience,
             claims: claims,
             notBefore: DateTime.UtcNow,
             expires: DateTime.UtcNow.AddMinutes(15),
             signingCredentials: creds
         );
+
         return new JwtSecurityTokenHandler().WriteToken(token);
     }
 
@@ -66,18 +81,15 @@ public class TokenService : ITokenService
 
     public ClaimsPrincipal? GetPrincipalFromExpiredToken(string token)
     {
-        var key = Encoding.UTF8.GetBytes(_config["Token:Key"]);
         var tokenValidationParameters = new TokenValidationParameters
         {
             ValidateAudience = true,
-            ValidAudience = _env.IsProduction()
-             ? "https://anton-posgres-app.azurewebsites.net"
-             : "http://127.0.0.1:8080",
+            ValidAudience = _audience,
             ValidateIssuer = true,
-            ValidIssuer = _config["Token:Issuer"],
+            ValidIssuer = _issuer,
             ValidateIssuerSigningKey = true,
-            IssuerSigningKey = new SymmetricSecurityKey(key),
-            ValidateLifetime = false          // игнорируем срок жизни
+            IssuerSigningKey = _signingKey,
+            ValidateLifetime = false // Ignore token lifetime check
         };
 
         var principal = new JwtSecurityTokenHandler()

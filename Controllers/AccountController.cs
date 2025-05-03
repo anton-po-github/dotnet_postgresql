@@ -111,7 +111,10 @@ public class AccountController : ControllerBase
         Regards
         ";
 
-        await _emailService.SendEmailConfirmation(user.Email, textEmail);
+        if (!string.IsNullOrEmpty(user.Email))
+        {
+            await _emailService.SendEmailConfirmation(user.Email, textEmail);
+        }
 
         return new UserDto
         {
@@ -182,7 +185,7 @@ public class AccountController : ControllerBase
 
         // 3) отзываем старый и сохраняем новый
         storedToken.Revoked = DateTime.UtcNow;
-        storedToken.RevokedByIp = HttpContext.Connection.RemoteIpAddress.ToString();
+        storedToken.RevokedByIp = HttpContext.Connection.RemoteIpAddress?.ToString();
 
         var newRefreshToken = await _tokenService.CreateRefreshTokenAsync(HttpContext.Connection.RemoteIpAddress.ToString(), user);
         storedToken.ReplacedByToken = newRefreshToken.Token;
@@ -220,6 +223,7 @@ public class AccountController : ControllerBase
     public async Task<IdentityResult> DeleteUser(string id)
     {
         var user = await _userManager.FindByIdAsync(id);
+        if (user == null) throw new AppException("User not found.");
 
         var result = await _userManager.DeleteAsync(user);
 

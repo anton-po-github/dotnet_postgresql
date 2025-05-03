@@ -1,14 +1,13 @@
 public class ApiResponse
 {
-    public ApiResponse(int statusCode, string message = null)
+    public ApiResponse(int statusCode, string message = "")
     {
         StatusCode = statusCode;
         Message = message ?? GetDefaultMessageForStatusCode(statusCode);
     }
 
-
     public int StatusCode { get; set; }
-    public string Message { get; set; }
+    public string? Message { get; set; }
 
     private string GetDefaultMessageForStatusCode(int statusCode)
     {
@@ -18,7 +17,7 @@ public class ApiResponse
             401 => "Authorized, you are not",
             404 => "Resource found, it was not",
             500 => "Internal Server Error",
-            _ => null
+            _ => "Empty response"
         };
     }
 }

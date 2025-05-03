@@ -16,6 +16,10 @@ public static class IdentityServicesExtensions
         builder.AddRoleManager<RoleManager<IdentityRole>>();
         builder.AddRoles<IdentityRole>();
 
+        var tokenKey = config["Token:Key"]
+                       ?? throw new InvalidOperationException("The 'Token:Key' value is missing from the configuration.");
+        var signingKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(tokenKey));
+
         services.AddAuthentication(options =>
         {
             options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -34,7 +38,7 @@ public static class IdentityServicesExtensions
                     },
                     OnTokenValidated = ctx =>
                     {
-                        Console.WriteLine($"[JWT] Успешно валидирован для {ctx.Principal.Identity.Name}");
+                        Console.WriteLine($"[JWT] Успешно валидирован для {ctx.Principal?.Identity?.Name}");
                         return Task.CompletedTask;
                     },
                     OnAuthenticationFailed = ctx =>
@@ -47,6 +51,7 @@ public static class IdentityServicesExtensions
                 options.SaveToken = true;
                 options.TokenValidationParameters.RoleClaimType = ClaimTypes.Role;
                 options.TokenValidationParameters = new TokenValidationParameters
+
                 {
                     ValidateIssuer = true,
                     ValidateAudience = true,
@@ -54,9 +59,7 @@ public static class IdentityServicesExtensions
                     ValidateIssuerSigningKey = true,
                     ValidIssuer = config["Token:Issuer"],
                     ValidAudience = config["Token:Audience"],
-                    IssuerSigningKey = new SymmetricSecurityKey(
-                        Encoding.UTF8.GetBytes(config["Token:Key"])
-                    )
+                    IssuerSigningKey = signingKey
                 };
 
             });

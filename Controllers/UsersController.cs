@@ -35,8 +35,6 @@ public class UsersController : ControllerBase
 
         var users = await _usersGenericService.ListAsync(spec);
 
-        // var data = _mapper.Map<IReadOnlyList<User>, IReadOnlyList<UserToReturnPagDto>>(products);
-
         return Ok(new Pagination<User>(userSpecParams.PageIndex, userSpecParams.PageSize, countItems, users));
     }
 
@@ -52,6 +50,7 @@ public class UsersController : ControllerBase
     public IActionResult Create([FromForm] AddUpdateUser addUser)
     {
         var userId = User.FindFirstValue(JwtRegisteredClaimNames.Sub);
+        if (userId == null) throw new AppException("UserId not found.");
 
         _userService.Create(addUser, userId);
 

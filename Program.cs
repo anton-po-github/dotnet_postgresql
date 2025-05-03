@@ -28,19 +28,13 @@ services.AddCors(options =>
 // 2. Swagger/OpenAPI (only in Development)
 services.AddSwaggerGen();
 
-var mongoSettings = builder.Configuration
-    .GetSection("MongoDB")
-    .Get<MongoDBSettings>();
-builder.Services.AddSingleton(mongoSettings);
-builder.Services.AddSingleton<IMongoClient>(sp =>
-    new MongoClient(mongoSettings.ConnectionString));
 
 JwtSecurityTokenHandler.DefaultMapInboundClaims = false;
 // либо
 //JwtSecurityTokenHandler.DefaultInboundClaimTypeMap.Clear(); 
 
-
-// 3. Application services, AutoMapper, SignalR, Identity, etc.
+// 3. Application services, Mongo, AutoMapper, SignalR, Identity, etc.
+services.AddMongoServices(configuration);
 services.AddApplicationServices(configuration);
 services.AddSignalR();
 services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
