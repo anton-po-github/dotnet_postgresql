@@ -53,6 +53,8 @@ public class RegisterDto
 
 public class UserDto
 {
+    public string refreshToken { get; set; }
+    public string accessToken { get; set; }
     public string Email { get; set; }
     public string UserName { get; set; }
     public string Token { get; set; }

@@ -77,7 +77,6 @@ public class AccountController : ControllerBase
         return await _userManager.FindByEmailAsync(email) != null;
     }
 
-    //  [AllowAnonymous]
     [HttpPost("register")]
     public async Task<ActionResult<UserDto>> Register(RegisterDto registerDto)
     {
@@ -89,6 +88,9 @@ public class AccountController : ControllerBase
 
         if (_userManager.Users.Any(x => x.Email == registerDto.Email))
             throw new AppException("User with the email '" + registerDto.Email + "' already exists");
+
+        if (_userManager.Users.Any(x => x.UserName == registerDto.UserName))
+            throw new AppException("User with the UserName '" + registerDto.UserName + "' already exists");
 
         var result = await _userManager.CreateAsync(user, registerDto.Password);
         if (!result.Succeeded) return BadRequest(new ApiResponse(400));
@@ -128,6 +130,12 @@ public class AccountController : ControllerBase
         if (user == null || !await _userManager.CheckPasswordAsync(user, loginDto.Password))
             return Unauthorized();
 
+        var result = await _signInManager.CheckPasswordSignInAsync(user, loginDto.Password, false);
+        if (!result.Succeeded) return Unauthorized(new ApiResponse(401));
+
+        var isEmailConfirmed = await _userManager.IsEmailConfirmedAsync(user);
+        if (!isEmailConfirmed) throw new AppException("Email is not Confirmed");
+
         var accessToken = await _tokenService.CreateAccessTokenAsync(user);
 
         var refreshToken = await _tokenService.CreateRefreshTokenAsync(HttpContext.Connection.RemoteIpAddress.ToString(), user);
@@ -136,18 +144,18 @@ public class AccountController : ControllerBase
 
         await _identityContext.SaveChangesAsync();
 
-        return Ok(new
+        return new UserDto
         {
-            accessToken,
+            accessToken = accessToken,
             refreshToken = refreshToken.Token,
             UserName = user.UserName,
             Role = await _userManager.GetRolesAsync(user)
-        });
+        };
     }
 
-    //[Authorize]
+    [Authorize]
     [HttpPost("refresh")]
-    public async Task<IActionResult> Refresh(RefreshRequestDto refreshRequestDto)
+    public async Task<ActionResult<UserDto>> Refresh(RefreshRequestDto refreshRequestDto)
     {
         _logger.LogInformation("Refresh: AccessToken={token}, RefreshToken={rt}", refreshRequestDto.AccessToken, refreshRequestDto.RefreshToken);
 
@@ -170,12 +178,7 @@ public class AccountController : ControllerBase
 
         _logger.LogInformation("Найден RefreshToken в БД: {found}", storedToken != null);
 
-        if (storedToken == null) return Unauthorized();   // 401, если не нашли
-
-        /*   var storedToken = await _identityContext.RefreshTokens
-              .SingleOrDefaultAsync(rt => rt.Token == refreshRequestDto.RefreshToken && !rt.Revoked.HasValue);
-          if (storedToken == null || storedToken.Expires <= DateTime.UtcNow)
-              return Unauthorized("Invalid or expired refresh token"); */
+        if (storedToken == null) return Unauthorized();
 
         // 3) отзываем старый и сохраняем новый
         storedToken.Revoked = DateTime.UtcNow;
@@ -191,36 +194,15 @@ public class AccountController : ControllerBase
         // 4) создаём новый access и отдаем оба
         var newAccessToken = await _tokenService.CreateAccessTokenAsync(user);
 
-        return Ok(new
+        return new UserDto
         {
             accessToken = newAccessToken,
             refreshToken = newRefreshToken.Token,
             UserName = user.UserName,
             Role = await _userManager.GetRolesAsync(user)
-        });
+        };
     }
-    /*   [AllowAnonymous]
-      [HttpPost("login")]
-      public async Task<ActionResult<UserDto>> Login(LoginDto loginDto)
-      {
-          var user = await _userManager.FindByEmailAsync(loginDto.Email);
-          if (user == null) return Unauthorized(new ApiResponse(401));
 
-          var result = await _signInManager.CheckPasswordSignInAsync(user, loginDto.Password, false);
-          if (!result.Succeeded) return Unauthorized(new ApiResponse(401));
-
-          var isEmailConfirmed = await _userManager.IsEmailConfirmedAsync(user);
-          if (!isEmailConfirmed) throw new AppException("Email is not Confirmed");
-
-          return new UserDto
-          {
-              Email = user.Email,
-              Token = await _tokenService.CreateTokenAsync(user),
-              UserName = user.UserName,
-              Role = await _userManager.GetRolesAsync(user)
-          };
-      } */
-    //  [AllowAnonymous]
     [HttpGet("confirm-email")]
     public async Task<IResult> ConfirmEmail([FromQuery] string email)
     {

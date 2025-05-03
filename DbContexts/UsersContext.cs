@@ -15,14 +15,14 @@ public class UsersContext : DbContext
         _httpContextAccessor = httpContextAccessor;
     }
 
-    /// Свойство, динамически возвращающее текущий IdentityUserId
-    /// из HttpContext.User (claim NameIdentifier или "sub").
+    /// Property that dynamically returns the current IdentityUserId
+    /// from HttpContext.User (claim NameIdentifier or "sub").
     public string? CurrentUserId =>
       _httpContextAccessor.HttpContext?.User?.FindFirstValue(ClaimTypes.NameIdentifier)
       ?? _httpContextAccessor.HttpContext?.User?.FindFirstValue(JwtRegisteredClaimNames.Sub);
 
-    /// Конфигурирует строку подключения к PostgreSQL,
-    /// если граф зависимостей ещё не настроен.
+    /// Configures the connection string to PostgreSQL,
+    /// if the dependency graph is not already configured.
     protected override void OnConfiguring(DbContextOptionsBuilder options)
     {
         if (!options.IsConfigured)
@@ -34,22 +34,22 @@ public class UsersContext : DbContext
 
     public DbSet<User> Users { get; set; } = null!;
 
-    /// Извлекает текущий UserId из HttpContext.User,
-    /// проверяя аутентификацию и необходимые claims.
+    /// Retrieves the current UserId from HttpContext.User,
+    /// checking authentication and required claims.
     private string? GetCurrentUserId()
     {
         var user = _httpContextAccessor.HttpContext?.User;
-        // Если нет контекста или не аутентифицирован — вернём null
+        // If there is no context or not authenticated - return null
         if (user == null || !user.Identity?.IsAuthenticated == true)
             return null;
 
-        // Попытка достать стандартный claim NameIdentifier
+        // Trying to get the standard claim NameIdentifier
         var id = user.FindFirstValue(ClaimTypes.NameIdentifier);
 
         if (!string.IsNullOrEmpty(id))
 
             return id;
-        // Если NameIdentifier отсутствует — берём "sub"
+        // If NameIdentifier is missing, we take "sub"
         return user.FindFirstValue(JwtRegisteredClaimNames.Sub);
     }
 
@@ -57,29 +57,26 @@ public class UsersContext : DbContext
     /// по OwnerId, чтобы каждая выборка возвращала только свои записи.
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        // Здесь мы не вызываем GetCurrentUserId() напрямую,
-        // чтобы фильтр подставлял значение свойства CurrentUserId динамически.
+        // Here we do not call GetCurrentUserId() directly,
+        // so that the filter will fill in the value of the CurrentUserId property dynamically.
         var currentUserId = GetCurrentUserId();
 
         modelBuilder.Entity<User>()
-                  // Используем свойство CurrentUserId. EF Core подставит его в SQL при каждом запросе :contentReference[oaicite:1]{index=1}
+                  // Use the CurrentUserId property. EF Core will insert it into SQL on every request :contentReference[oaicite:1]{index=1}
                   .HasQueryFilter(u => u.OwnerId == CurrentUserId);
-
-        // Вызов базового метода необходим для регистрации
-        // всех дополнительных конфигураций, которые могли быть
-        // определены в модулях, плагинах или в родительских классах.
+        // Calling the base method is necessary to register any additional 
+        // configurations that might have been defined in modules, plugins, or parent classes.
         base.OnModelCreating(modelBuilder);
     }
 
-    /// Переопределяем SaveChanges, чтобы перед сохранением
-    /// автоматически заполнить поле OwnerId у новых сущностей.
+    /// Override SaveChanges to automatically fill in the OwnerId field for new entities before saving.
     public override int SaveChanges()
     {
         ApplyOwnerId();
         return base.SaveChanges();
     }
 
-    /// Переопределяем асинхронный вариант SaveChangesAsync.
+    /// Override the asynchronous SaveChangesAsync variant.
     public override Task<int> SaveChangesAsync(
         CancellationToken cancellationToken = default)
     {
@@ -87,9 +84,9 @@ public class UsersContext : DbContext
         return base.SaveChangesAsync(cancellationToken);
     }
 
-    /// Общая логика по установке OwnerId для всех новых сущностей.
-    /// Проходит по ChangeTracker и для каждого состояния Added
-    /// назначает OwnerId = текущий UserId.
+    /// General logic for setting OwnerId for all new entities.
+    /// Iterates through ChangeTracker and for each Added state
+    /// sets OwnerId = current UserId.
     private void ApplyOwnerId()
     {
         var userId = GetCurrentUserId();
