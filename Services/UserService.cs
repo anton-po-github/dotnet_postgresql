@@ -71,9 +71,6 @@ public class UserService
         user.Phone = "937-99-92";
         user.PhotoUrl = ConvertIFormFileToByteArray(updateUser.File);
 
-        // copy model to user and save
-        // _mapper.Map(model, user);
-
         _userContext.Users.Update(user);
 
         _userContext.SaveChanges();

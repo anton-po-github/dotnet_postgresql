@@ -6,14 +6,8 @@ using System.IdentityModel.Tokens.Jwt;
 
 var builder = WebApplication.CreateBuilder(args);
 
-var port = Environment.GetEnvironmentVariable("PORT") ?? "8080";
-builder.WebHost.UseUrls($"http://0.0.0.0:{port}");
-
-var services = builder.Services;
-var configuration = builder.Configuration;
-
-// 1. Configure CORS to allow both local dev and production Angular apps
-services.AddCors(options =>
+// 1. CORS
+builder.Services.AddCors(options =>
 {
     options.AddPolicy("CorsPolicy", policy =>
     {
@@ -25,26 +19,24 @@ services.AddCors(options =>
     });
 });
 
-// 2. Swagger/OpenAPI (only in Development)
-services.AddSwaggerGen();
+// 2. Swagger (Dev only)
+builder.Services.AddSwaggerGen();
 
-
+// JWT claims mapping
 JwtSecurityTokenHandler.DefaultMapInboundClaims = false;
-// либо
-//JwtSecurityTokenHandler.DefaultInboundClaimTypeMap.Clear(); 
 
-// 3. Application services, Mongo, AutoMapper, SignalR, Identity, etc.
-services.AddMongoServices(configuration);
-services.AddApplicationServices(configuration);
-services.AddSignalR();
-services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
-services.AddIdentityServices(configuration);
+// 3. Application services
+builder.Services.AddMongoServices(builder.Configuration);
+builder.Services.AddApplicationServices(builder.Configuration);
+builder.Services.AddSignalR();
+builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
+builder.Services.AddIdentityServices(builder.Configuration);
 
-// 4. EF Core DbContexts, Identity, etc. inside AddApplicationServices / AddIdentityServices
+// 4. EF Core и Identity в сервисах
 
 var app = builder.Build();
 
-// 5. Forwarded headers for correct Request.Scheme behind proxies
+// 5. Forwarded headers for correct scheme/host detection
 app.UseForwardedHeaders(new ForwardedHeadersOptions
 {
     ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto
@@ -54,24 +46,29 @@ app.UseForwardedHeaders(new ForwardedHeadersOptions
 app.UseMiddleware<ErrorHandlerMiddleware>();
 app.UseStatusCodePagesWithReExecute("/errors/{0}");
 
-// 7. Routing
+// 7. HTTPS и Swagger в Development
+if (app.Environment.IsDevelopment())
+{
+    app.UseSwagger();
+    app.UseSwaggerUI();
+    app.UseHttpsRedirection();
+}
+
+// 8. Включаем Routing (маршрутизация должна идти до CORS/Auth)
 app.UseRouting();
 
-// 8. Enable CORS BEFORE Authentication/Authorization
+// 9. CORS до Auth
 app.UseCors("CorsPolicy");
 
-// 9. Authentication & Authorization
+// 10. Аутентификация и авторизация
 app.UseAuthentication();
 app.UseAuthorization();
 
-// 10. Map controllers and hubs
-app.UseEndpoints(endpoints =>
-{
-    endpoints.MapControllers();
-    endpoints.MapHub<ChatHub>("/hubs/chat");
-});
+// 11. Топ-левел маршрутизация: контроллеры и SignalR-хабы
+app.MapControllers();                                        // Maps attribute-routed controllers
+app.MapHub<ChatHub>("/hubs/chat");                          // Maps SignalR hub at /hubs/chat
 
-// 12. Dev-only: automatic EF Core migrations
+// 12. Dev-only: автоматические миграции EF Core
 if (app.Environment.IsDevelopment())
 {
     using var scope = app.Services.CreateScope();
@@ -79,7 +76,6 @@ if (app.Environment.IsDevelopment())
     var logger = sp.GetRequiredService<ILogger<Program>>();
     try
     {
-        // Apply pending migrations only in Development environment
         var contexts = new DbContext[]
         {
             sp.GetRequiredService<UsersContext>(),
@@ -105,17 +101,16 @@ if (app.Environment.IsDevelopment())
     }
 }
 
-// 11. DB migrations & seed data
+// 13. Seed data (users, roles)
 using (var scope = app.Services.CreateScope())
 {
-    var servicesProvider = scope.ServiceProvider;
-    var logger = servicesProvider.GetRequiredService<ILogger<Program>>();
+    var sp = scope.ServiceProvider;
+    var logger = sp.GetRequiredService<ILogger<Program>>();
     try
     {
-        var userManager = servicesProvider.GetRequiredService<UserManager<IdentityUser>>();
-
+        var userManager = sp.GetRequiredService<UserManager<IdentityUser>>();
         await IdentityContextSeed.SeedUsersAsync(userManager);
-        await IdentitySeeder.SeedRolesAsync(servicesProvider);
+        await IdentitySeeder.SeedRolesAsync(sp);
     }
     catch (Exception ex)
     {
@@ -123,12 +118,7 @@ using (var scope = app.Services.CreateScope())
     }
 }
 
-// 12. Swagger UI & HTTPS redirection in Development
-if (app.Environment.IsDevelopment())
-{
-    app.UseSwagger();
-    app.UseSwaggerUI();
-    app.UseHttpsRedirection();
-}
-
+// 14. Launching the application
+var port = Environment.GetEnvironmentVariable("PORT") ?? "8080";
+app.Urls.Add($"http://0.0.0.0:{port}");
 app.Run();

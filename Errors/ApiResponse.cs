@@ -3,7 +3,10 @@ public class ApiResponse
     public ApiResponse(int statusCode, string message = "")
     {
         StatusCode = statusCode;
-        Message = message ?? GetDefaultMessageForStatusCode(statusCode);
+        // If message is empty or null, take the default message
+        Message = string.IsNullOrEmpty(message)
+            ? GetDefaultMessageForStatusCode(statusCode)
+            : message;
     }
 
     public int StatusCode { get; set; }
@@ -21,4 +24,18 @@ public class ApiResponse
         };
     }
 }
+
+public class ApiValidationErrorResponse : ApiResponse
+{
+    // 1) Initialize Errors immediately upon declaration
+    public IEnumerable<string> Errors { get; set; } = Enumerable.Empty<string>();
+
+    public ApiValidationErrorResponse()
+        : base(400)
+    {
+        // 2) (Optional) You can add any standard error messages here
+        // Errors = new List<string> { "Validation failed." };
+    }
+}
+
 

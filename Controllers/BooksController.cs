@@ -31,16 +31,25 @@ public class BooksController : ControllerBase
 
         return book;
     }
-    public async Task<Book> Create([FromForm(Name = "icon")] IFormFile file, [FromForm(Name = "body")] string body)
+    public async Task<Book> Create(
+     [FromForm(Name = "icon")] IFormFile file,
+     [FromForm(Name = "body")] string body)
     {
-        Book book = JsonConvert.DeserializeObject<Book>(body);
-        if (book == null) throw new AppException("Book not found.");
+        // 1. Check the basic arguments
+        if (string.IsNullOrWhiteSpace(body))
+            throw new AppException("Request body is empty.");
 
+        // 2. Deserialize into a nullable variable and immediately check for null
+        Book? book = JsonConvert.DeserializeObject<Book>(body);
+        if (book is null)
+            throw new AppException("Invalid book data in request.");
+
+        // 4. Call the service, ensuring that book is not null
         return await _bookService.Create(book, file);
     }
 
     [HttpPut("{id:length(24)}")]
-    public async Task<ActionResult<Book>> Update(string id, [FromForm(Name = "icon")] IFormFile file)
+    public async Task<ActionResult<Book>> Update(string id, Book updateBook)
     {
         var book = _bookService.GetOneBook(id);
 
@@ -49,9 +58,14 @@ public class BooksController : ControllerBase
             return NotFound();
         }
 
-        await _bookService.Update(id, book, file);
+        book.BookName = updateBook.BookName;
+        book.Category = updateBook.Category;
+        book.Price = updateBook.Price;
+        book.Author = updateBook.Author;
 
-        return book;
+        var newBook = await _bookService.Update(id, book);
+
+        return newBook;
     }
 
     [HttpDelete("{id:length(24)}")]
