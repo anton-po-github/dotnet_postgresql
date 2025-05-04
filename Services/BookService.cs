@@ -11,39 +11,46 @@ public class BookService
         _fileService = fileService;
     }
 
-    public List<Book> Get() =>
-        _mongoDBContext.Books.Find(book => true).ToList();
-
-    public Book GetOneBook(string id) =>
-        _mongoDBContext.Books.Find<Book>(book => book.Id == id).FirstOrDefault();
-
-    public async Task<Book> Create(Book book, IFormFile file)
+    public async Task<Book> CreateAsyncBook(Book newBook, byte[] iconData)
     {
-        var objectId = await _fileService.UploadFile(file);
+        // Upload raw bytes to GridFS and return ObjectId
+        var objectId = await _fileService.UploadBytesAsync(newBook.IconFileName, iconData);
 
-        book.IconId = objectId.ToString();
-
-        book.IconPath = await _fileService.GetBytesByName(file.FileName);
+        // Prepare Book entity
+        var book = new Book
+        {
+            BookName = newBook.BookName,
+            Price = newBook.Price,
+            Category = newBook.Category,
+            Author = newBook.Author,
+            IconId = objectId.ToString(),
+            IconPath = newBook.IconBase64
+        };
 
         _mongoDBContext.Books.InsertOne(book);
 
         return book;
     }
 
-    public async Task<Book> Update(string id, Book bookIn)
+    public async Task<Book> Update(string id, Book newBook, byte[] iconData)
     {
+        var objectId = await _fileService.UploadBytesAsync(newBook.IconFileName, iconData);
 
-        var objectId = await _fileService.UploadFile(bookIn.Icon);
+        newBook.IconId = objectId.ToString();
 
-        bookIn.IconId = objectId.ToString();
+        _mongoDBContext.Books.ReplaceOne(book => book.Id == id, newBook);
 
-        bookIn.IconPath = await _fileService.GetBytesByName(bookIn.Icon.FileName);
-
-        _mongoDBContext.Books.ReplaceOne(book => book.Id == id, bookIn);
-
-        return bookIn;
+        return newBook;
     }
 
+    public async Task<Book?> GetByIdAsync(string id)
+    {
+        return await _mongoDBContext.Books.Find(b => b.Id == id).FirstOrDefaultAsync();
+    }
+
+    public List<Book> Get() => _mongoDBContext.Books.Find(book => true).ToList();
+
+    public Book GetOneBook(string id) => _mongoDBContext.Books.Find<Book>(book => book.Id == id).FirstOrDefault();
 
     public void Remove(Book bookIn, string iconId)
     {
@@ -52,6 +59,5 @@ public class BookService
         _fileService.DeleteFile(iconId);
     }
 
-    public void Remove(string id) =>
-        _mongoDBContext.Books.DeleteOne(book => book.Id == id);
+    public void Remove(string id) => _mongoDBContext.Books.DeleteOne(book => book.Id == id);
 }

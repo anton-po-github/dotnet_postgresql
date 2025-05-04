@@ -13,6 +13,25 @@ public class FileService
         _mongoDBContext = new MongoDBContext(databaseSettings);
     }
 
+    public async Task<ObjectId> UploadBytesAsync(string fileName, byte[] data)
+    {
+        try
+        {
+            using var ms = new MemoryStream(data);
+            return await _mongoDBContext.Bucket.UploadFromStreamAsync(fileName, ms);
+        }
+        catch (Exception ex)
+        {
+            // логирование
+            throw new AppException($"Error uploading file: {ex.Message}");
+        }
+    }
+
+    public Task<byte[]> DownloadBytesByNameAsync(string fileName)
+    {
+        return _mongoDBContext.Bucket.DownloadAsBytesByNameAsync(fileName);
+    }
+
     public async Task<ObjectId> UploadFile(IFormFile file)
     {
         try

@@ -1,4 +1,3 @@
-using Newtonsoft.Json;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 
@@ -31,41 +30,37 @@ public class BooksController : ControllerBase
 
         return book;
     }
-    public async Task<Book> Create(
-     [FromForm(Name = "icon")] IFormFile file,
-     [FromForm(Name = "body")] string body)
+
+    [HttpPost]
+    public async Task<Book> Create([FromBody] Book newBook)
     {
-        // 1. Check the basic arguments
-        if (string.IsNullOrWhiteSpace(body))
+        if (newBook == null)
             throw new AppException("Request body is empty.");
 
-        // 2. Deserialize into a nullable variable and immediately check for null
-        Book? book = JsonConvert.DeserializeObject<Book>(body);
-        if (book is null)
-            throw new AppException("Invalid book data in request.");
+        var iconBytes = getIconBytes(newBook);
 
-        // 4. Call the service, ensuring that book is not null
-        return await _bookService.Create(book, file);
+        // 2. Call service, passing DTO and decoded bytes
+        var book = await _bookService.CreateAsyncBook(newBook, iconBytes);
+
+        return book;
     }
 
     [HttpPut("{id:length(24)}")]
-    public async Task<ActionResult<Book>> Update(string id, Book updateBook)
+    public async Task<Book> Update(string id, [FromBody] Book newBook)
     {
+        if (newBook == null)
+            throw new AppException("Request body is empty.");
+
         var book = _bookService.GetOneBook(id);
-
         if (book == null)
-        {
-            return NotFound();
-        }
+            throw new AppException("The book is not found.");
 
-        book.BookName = updateBook.BookName;
-        book.Category = updateBook.Category;
-        book.Price = updateBook.Price;
-        book.Author = updateBook.Author;
+        var iconBytes = getIconBytes(newBook);
 
-        var newBook = await _bookService.Update(id, book);
+        // 2. Call service, passing DTO and decoded bytes
+        book = await _bookService.Update(id, newBook, iconBytes);
 
-        return newBook;
+        return book;
     }
 
     [HttpDelete("{id:length(24)}")]
@@ -81,5 +76,21 @@ public class BooksController : ControllerBase
         _bookService.Remove(book, book.IconId);
 
         return true;
+    }
+
+    private byte[] getIconBytes(Book newBook)
+    {
+        // 1. Decode Base64 string into byte[]
+        byte[] iconBytes;
+        try
+        {
+            iconBytes = Convert.FromBase64String(newBook.IconBase64);
+        }
+        catch (FormatException)
+        {
+            throw new AppException("IconBase64 is not a valid Base64 string."); ;
+        }
+
+        return iconBytes;
     }
 }
