@@ -141,7 +141,7 @@ public class AccountController : ControllerBase
 
         var accessToken = await _tokenService.CreateAccessTokenAsync(user);
 
-        var refreshToken = await _tokenService.CreateRefreshTokenAsync(HttpContext.Connection.RemoteIpAddress.ToString(), user);
+        var refreshToken = await _tokenService.CreateRefreshTokenAsync(GetClientIp(), user);
 
         _identityContext.RefreshTokens.Add(refreshToken);
 
@@ -187,7 +187,7 @@ public class AccountController : ControllerBase
         storedToken.Revoked = DateTime.UtcNow;
         storedToken.RevokedByIp = HttpContext.Connection.RemoteIpAddress?.ToString();
 
-        var newRefreshToken = await _tokenService.CreateRefreshTokenAsync(HttpContext.Connection.RemoteIpAddress.ToString(), user);
+        var newRefreshToken = await _tokenService.CreateRefreshTokenAsync(GetClientIp(), user);
         storedToken.ReplacedByToken = newRefreshToken.Token;
 
         _identityContext.RefreshTokens.Add(newRefreshToken);
@@ -229,5 +229,16 @@ public class AccountController : ControllerBase
 
         return result;
 
+    }
+
+    private string GetClientIp()
+    {
+        // HttpContext and Connection should be non-null when handling a request in ControllerBase
+        // RemoteIpAddress may be null (e.g., non-TCP transports); use null-conditional and fallback
+        return HttpContext?
+            .Connection?
+            .RemoteIpAddress?
+            .ToString()
+            ?? "unknown";
     }
 }

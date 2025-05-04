@@ -5,7 +5,7 @@ using MongoDB.Driver.GridFS;
 public class FileService
 {
     private readonly IWebHostEnvironment _hostEnvironment;
-    private readonly MongoDBContext _mongoDBContext = null;
+    private readonly MongoDBContext _mongoDBContext;
 
     public FileService(IWebHostEnvironment hostEnvironment, MongoDBSettings databaseSettings)
     {
@@ -35,7 +35,7 @@ public class FileService
 
     public void DeleteFile(string id)
     {
-        var objectId = MongoDB.Bson.ObjectId.Parse(id);
+        var objectId = ObjectId.Parse(id);
         _mongoDBContext.Bucket.DeleteAsync(objectId);
     }
 
@@ -95,24 +95,6 @@ public class FileService
             arr[i] = 0x20;
         }
         return arr;
-    }
-
-    public async Task<String> GetFileInfo(string id)
-    {
-        GridFSFileInfo info = null;
-        var objectId = new ObjectId(id);
-        try
-        {
-            using (var stream = await _mongoDBContext.Bucket.OpenDownloadStreamAsync(objectId))
-            {
-                info = stream.FileInfo;
-            }
-            return info.Filename;
-        }
-        catch (Exception)
-        {
-            return "Not Found";
-        }
     }
     public async Task<string> UploadProfilePicture(IFormFile file)
     {

@@ -3,9 +3,9 @@ using MongoDB.Driver.GridFS;
 
 public class MongoDBContext
 {
-    private readonly IMongoDatabase _database = null;
-    private readonly GridFSBucket _bucket = null;
-    private readonly MongoDBSettings _databaseSettings = null;
+    private readonly IMongoDatabase _database;
+    private readonly GridFSBucket _bucket;
+    private readonly MongoDBSettings _databaseSettings;
 
     public MongoDBContext(MongoDBSettings databaseSettings)
     {
