@@ -32,15 +32,37 @@ public class BookService
         return book;
     }
 
-    public async Task<Book> Update(string id, Book newBook, byte[] iconData)
+    public async Task<Book> UpdateAsync(
+        string id,
+        Book newBook,
+        byte[] iconData)
     {
-        var objectId = await _fileService.UploadBytesAsync(newBook.IconFileName, iconData);
+        // 1) Проверяем наличие книги
+        var filter = Builders<Book>.Filter.Eq(b => b.Id, id);
+        var existing = await _mongoDBContext.Books.Find(filter).FirstOrDefaultAsync();
+        if (existing == null)
+            throw new AppException("Book not found");
 
-        newBook.IconId = objectId.ToString();
+        // 2) Загружаем новый файл
+        var newObjectId = await _fileService.UploadBytesAsync(
+            newBook.IconFileName,
+            iconData
+        );
 
-        _mongoDBContext.Books.ReplaceOne(book => book.Id == id, newBook);
+        // 3) Собираем UpdateDefinition — обновляем только нужные поля
+        var update = Builders<Book>.Update
+            .Set(b => b.BookName, newBook.BookName)
+            .Set(b => b.Price, newBook.Price)
+            .Set(b => b.Category, newBook.Category)
+            .Set(b => b.Author, newBook.Author)
+            .Set(b => b.IconId, newObjectId.ToString())
+            .Set(b => b.IconPath, newBook.IconBase64);
 
-        return newBook;
+        // 4) Применяем атомарно
+        await _mongoDBContext.Books.UpdateOneAsync(filter, update);
+
+        // 5) Возвращаем уже обновлённый документ
+        return (await _mongoDBContext.Books.Find(filter).FirstAsync())!;
     }
 
     public async Task<Book?> GetByIdAsync(string id)

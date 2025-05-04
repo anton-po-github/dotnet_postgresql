@@ -45,22 +45,29 @@ public class BooksController : ControllerBase
         return book;
     }
 
-    [HttpPut("{id:length(24)}")]
-    public async Task<Book> Update(string id, [FromBody] Book newBook)
+    [HttpPut("{id}")]
+    public async Task<ActionResult<Book>> Update(
+       string id,
+       [FromBody] Book newBook)
     {
         if (newBook == null)
-            throw new AppException("Request body is empty.");
+            return BadRequest("Request body is empty.");
 
-        var book = _bookService.GetOneBook(id);
-        if (book == null)
-            throw new AppException("The book is not found.");
+        // Декодируем Base64
+        byte[] iconBytes;
+        try
+        {
+            iconBytes = Convert.FromBase64String(newBook.IconBase64);
+        }
+        catch (FormatException)
+        {
+            return BadRequest("IconBase64 is not valid Base64.");
+        }
 
-        var iconBytes = getIconBytes(newBook);
+        // Вызываем сервис
+        var updatedBook = await _bookService.UpdateAsync(id, newBook, iconBytes);
 
-        // 2. Call service, passing DTO and decoded bytes
-        book = await _bookService.Update(id, newBook, iconBytes);
-
-        return book;
+        return Ok(updatedBook);
     }
 
     [HttpDelete("{id:length(24)}")]
