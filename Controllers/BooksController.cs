@@ -54,18 +54,10 @@ public class BooksController : ControllerBase
             return BadRequest("Request body is empty.");
 
         // Декодируем Base64
-        byte[] iconBytes;
-        try
-        {
-            iconBytes = Convert.FromBase64String(newBook.IconBase64);
-        }
-        catch (FormatException)
-        {
-            return BadRequest("IconBase64 is not valid Base64.");
-        }
+        var iconBytes = getIconBytes(newBook);
 
         // Вызываем сервис
-        var updatedBook = await _bookService.UpdateAsync(id, newBook, iconBytes);
+        var updatedBook = await _bookService.UpdateAsyncBook(id, newBook, iconBytes);
 
         return Ok(updatedBook);
     }

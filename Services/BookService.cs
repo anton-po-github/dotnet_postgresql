@@ -1,3 +1,4 @@
+using MongoDB.Bson;
 using MongoDB.Driver;
 
 public class BookService
@@ -32,7 +33,7 @@ public class BookService
         return book;
     }
 
-    public async Task<Book> UpdateAsync(
+    public async Task<Book> UpdateAsyncBook(
         string id,
         Book newBook,
         byte[] iconData)
@@ -42,6 +43,12 @@ public class BookService
         var existing = await _mongoDBContext.Books.Find(filter).FirstOrDefaultAsync();
         if (existing == null)
             throw new AppException("Book not found");
+
+        // 2. Удаляем старый файл, если он был
+        if (ObjectId.TryParse(existing.IconId, out var oldObjectId))
+        {
+            await _fileService.DeleteFileAsync(oldObjectId);
+        }
 
         // 2) Загружаем новый файл
         var newObjectId = await _fileService.UploadBytesAsync(
