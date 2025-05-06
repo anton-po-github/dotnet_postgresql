@@ -58,7 +58,6 @@ public class AccountController : ControllerBase
         return new UserDto
         {
             Email = user.Email,
-            Token = await _tokenService.CreateAccessTokenAsync(user),
             UserName = user.UserName,
             IdentityUserId = userId,
             Role = await _userManager.GetRolesAsync(user)
@@ -119,7 +118,7 @@ public class AccountController : ControllerBase
         return new UserDto
         {
             Email = user.Email,
-            Token = await _tokenService.CreateAccessTokenAsync(user),
+            IdentityUserId = user.Id,
             UserName = user.UserName,
             Role = await _userManager.GetRolesAsync(user)
         };
@@ -151,12 +150,13 @@ public class AccountController : ControllerBase
         {
             accessToken = accessToken,
             refreshToken = refreshToken.Token,
+            Email = user.Email,
+            IdentityUserId = user.Id,
             UserName = user.UserName,
             Role = await _userManager.GetRolesAsync(user)
         };
     }
 
-    [Authorize]
     [HttpPost("refresh")]
     public async Task<ActionResult<UserDto>> Refresh(RefreshRequestDto refreshRequestDto)
     {
@@ -201,6 +201,8 @@ public class AccountController : ControllerBase
         {
             accessToken = newAccessToken,
             refreshToken = newRefreshToken.Token,
+            Email = user.Email,
+            IdentityUserId = user.Id,
             UserName = user.UserName,
             Role = await _userManager.GetRolesAsync(user)
         };
