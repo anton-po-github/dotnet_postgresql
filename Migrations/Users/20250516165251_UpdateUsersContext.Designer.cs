@@ -2,17 +2,20 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 #nullable disable
 
-namespace dotnet_postgresql.Migrations.Postgres
+namespace dotnet_postgresql.Migrations.Users
 {
-    [DbContext(typeof(PostgresContext))]
-    partial class PostgresContextModelSnapshot : ModelSnapshot
+    [DbContext(typeof(UsersContext))]
+    [Migration("20250516165251_UpdateUsersContext")]
+    partial class UpdateUsersContext
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -21,44 +24,37 @@ namespace dotnet_postgresql.Migrations.Postgres
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
-            modelBuilder.Entity("PostgresProducts", b =>
+            modelBuilder.Entity("User", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
-                    b.Property<string>("OwnerId")
+                    b.Property<string>("Details")
+                        .HasColumnType("jsonb");
+
+                    b.Property<string>("Email")
                         .HasColumnType("text");
 
-                    b.Property<string>("name")
+                    b.Property<string>("FirstName")
+                        .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<int>("user_id")
-                        .HasColumnType("integer");
-
-                    b.Property<string>("user_name")
+                    b.Property<string>("LastName")
                         .HasColumnType("text");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("products");
-                });
-
-            modelBuilder.Entity("PostgresUsers", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
 
                     b.Property<string>("OwnerId")
                         .HasColumnType("text");
 
-                    b.Property<string>("name")
+                    b.Property<string>("Phone")
                         .HasColumnType("text");
+
+                    b.Property<byte[]>("PhotoUrl")
+                        .HasColumnType("bytea");
 
                     b.HasKey("Id");
 
-                    b.ToTable("users");
+                    b.ToTable("Users");
                 });
 #pragma warning restore 612, 618
         }
