@@ -39,6 +39,7 @@ public class UserService
             FirstName = addUser.FirstName,
             LastName = addUser.LastName,
             Email = addUser.Email,
+            PhotoType = addUser.PhotoType,
             Phone = "937-99-92",
             OwnerId = userId,
             PhotoUrl = ConvertIFormFileToByteArray(addUser.File)
@@ -67,6 +68,7 @@ public class UserService
 
         user.FirstName = updateUser.FirstName;
         user.LastName = updateUser.LastName;
+        user.PhotoType = updateUser.PhotoType;
         user.Email = updateUser.Email;
         user.Phone = "937-99-92";
         user.PhotoUrl = ConvertIFormFileToByteArray(updateUser.File);

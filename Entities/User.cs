@@ -11,6 +11,7 @@ public class User : BaseEntity
     public string? LastName { get; set; }
     public string? Email { get; set; }
     public Byte[]? PhotoUrl { get; set; }
+    public string? PhotoType { get; set; }
 
     [Column(TypeName = "jsonb")]
     public string? Details { get; set; }
@@ -23,6 +24,9 @@ public class AddUpdateUser
 
     [FromForm(Name = "lastName")]
     public string? LastName { get; set; }
+
+    [FromForm(Name = "PhotoType")]
+    public string? PhotoType { get; set; }
 
     [FromForm(Name = "email")]
     [EmailAddress]

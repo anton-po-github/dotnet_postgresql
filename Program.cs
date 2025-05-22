@@ -19,10 +19,10 @@ builder.Services.AddCors(options =>
     });
 });
 
-// 2. Swagger (Dev only)
+// 2. Swagger (Development only)
 builder.Services.AddSwaggerGen();
 
-// JWT claims mapping
+// Disable default claim type mapping
 JwtSecurityTokenHandler.DefaultMapInboundClaims = false;
 
 // 3. Application services
@@ -32,11 +32,11 @@ builder.Services.AddSignalR();
 builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 builder.Services.AddIdentityServices(builder.Configuration);
 
-// 4. EF Core и Identity в сервисах
+// 4. EF Core and Identity setup
 
 var app = builder.Build();
 
-// 5. Forwarded headers for correct scheme/host detection
+// 5. Forwarded headers for correct scheme/host detection behind a proxy
 app.UseForwardedHeaders(new ForwardedHeadersOptions
 {
     ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto
@@ -46,7 +46,7 @@ app.UseForwardedHeaders(new ForwardedHeadersOptions
 app.UseMiddleware<ErrorHandlerMiddleware>();
 app.UseStatusCodePagesWithReExecute("/errors/{0}");
 
-// 7. HTTPS и Swagger в Development
+// 7. HTTPS redirection and Swagger in Development
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
@@ -54,21 +54,21 @@ if (app.Environment.IsDevelopment())
     app.UseHttpsRedirection();
 }
 
-// 8. Включаем Routing (маршрутизация должна идти до CORS/Auth)
+// 8. Enable routing (must come before CORS/Auth)
 app.UseRouting();
 
-// 9. CORS до Auth
+// 9. Apply CORS policy (before authentication)
 app.UseCors("CorsPolicy");
 
-// 10. Аутентификация и авторизация
+// 10. Authentication and Authorization
 app.UseAuthentication();
 app.UseAuthorization();
 
-// 11. Топ-левел маршрутизация: контроллеры и SignalR-хабы
-app.MapControllers();                                        // Maps attribute-routed controllers
+// 11. Top-level routing: Controllers and SignalR hubs
+app.MapControllers();                                       // Maps attribute-routed controllers
 app.MapHub<ChatHub>("/hubs/chat");                          // Maps SignalR hub at /hubs/chat
 
-// 12. Dev-only: автоматические миграции EF Core
+// 12. Development only: Apply EF Core pending migrations
 if (app.Environment.IsDevelopment())
 {
     using var scope = app.Services.CreateScope();
@@ -101,7 +101,7 @@ if (app.Environment.IsDevelopment())
     }
 }
 
-// 13. Seed data (users, roles)
+// 13. Seed initial data (users, roles)
 using (var scope = app.Services.CreateScope())
 {
     var sp = scope.ServiceProvider;
@@ -118,7 +118,7 @@ using (var scope = app.Services.CreateScope())
     }
 }
 
-// 14. Launching the application
+// 14. Start the application
 var port = Environment.GetEnvironmentVariable("PORT") ?? "8080";
 app.Urls.Add($"http://0.0.0.0:{port}");
 app.Run();
