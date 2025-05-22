@@ -25,6 +25,9 @@ public static class ApplicationServicesExtensions
         });
 
         services.AddHttpContextAccessor();
+        services.AddMemoryCache();
+        services.AddScoped<ZohoAuthService>();
+        services.AddScoped<ZohoTicketService>();
         services.AddScoped<BookService>();
         services.AddScoped<FileService>();
         services.AddScoped<EmailService>();
