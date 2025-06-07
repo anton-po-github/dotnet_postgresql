@@ -30,5 +30,16 @@ public class ErrorController : ControllerBase
         };
         return StatusCode(code, detail);
     }
+
+    [HttpGet("trigger-error")]
+    public IActionResult TriggerError()
+    {
+        var errorResponse = new
+        {
+            message = "An exception has been raised that is likely due to a transient failure."
+        };
+
+        return StatusCode(500, errorResponse);
+    }
 }
 
