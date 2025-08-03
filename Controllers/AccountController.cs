@@ -135,8 +135,8 @@ public class AccountController : ControllerBase
         var result = await _signInManager.CheckPasswordSignInAsync(user, loginDto.Password, false);
         if (!result.Succeeded) return Unauthorized(new ApiResponse(401));
 
-        var isEmailConfirmed = await _userManager.IsEmailConfirmedAsync(user);
-        if (!isEmailConfirmed) throw new AppException("Email is not Confirmed");
+        /* var isEmailConfirmed = await _userManager.IsEmailConfirmedAsync(user);
+        if (!isEmailConfirmed) throw new AppException("Email is not Confirmed"); */
 
         var accessToken = await _tokenService.CreateAccessTokenAsync(user);
 
