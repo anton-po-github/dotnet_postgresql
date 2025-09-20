@@ -25,6 +25,7 @@ yarn-error.log
 
 # IDEs and editors
 .idea/
+.config
 .project
 .classpath
 .c9/

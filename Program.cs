@@ -1,22 +1,25 @@
+using System.IdentityModel.Tokens.Jwt;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.AspNetCore.HttpOverrides;
 using MongoDB.Driver;
-using System.IdentityModel.Tokens.Jwt;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // 1. CORS
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("CorsPolicy", policy =>
-    {
-        policy
-            .WithOrigins("http://localhost:4200", "https://ng-dotnet.web.app")
-            .AllowAnyHeader()
-            .AllowAnyMethod()
-            .AllowCredentials();
-    });
+    options.AddPolicy(
+        "CorsPolicy",
+        policy =>
+        {
+            policy
+                .WithOrigins("http://localhost:4200", "https://ng-dotnet.web.app")
+                .AllowAnyHeader()
+                .AllowAnyMethod()
+                .AllowCredentials();
+        }
+    );
 });
 
 // 2. Swagger (Development only)
@@ -37,10 +40,12 @@ builder.Services.AddIdentityServices(builder.Configuration);
 var app = builder.Build();
 
 // 5. Forwarded headers for correct scheme/host detection behind a proxy
-app.UseForwardedHeaders(new ForwardedHeadersOptions
-{
-    ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto
-});
+app.UseForwardedHeaders(
+    new ForwardedHeadersOptions
+    {
+        ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto,
+    }
+);
 
 // 6. Global error handler
 app.UseMiddleware<ErrorHandlerMiddleware>();
@@ -65,8 +70,8 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 // 11. Top-level routing: Controllers and SignalR hubs
-app.MapControllers();                                       // Maps attribute-routed controllers
-app.MapHub<ChatHub>("/hubs/chat");                          // Maps SignalR hub at /hubs/chat
+app.MapControllers(); // Maps attribute-routed controllers
+app.MapHub<ChatHub>("/hubs/chat"); // Maps SignalR hub at /hubs/chat
 
 // 12. Development only: Apply EF Core pending migrations
 if (app.Environment.IsDevelopment())
@@ -81,7 +86,7 @@ if (app.Environment.IsDevelopment())
             sp.GetRequiredService<UsersContext>(),
             sp.GetRequiredService<IdentityContext>(),
             sp.GetRequiredService<PostgresContext>(),
-            sp.GetRequiredService<ChatMessageContext>()
+            sp.GetRequiredService<ChatMessageContext>(),
         };
 
         foreach (var ctx in contexts)
@@ -89,7 +94,11 @@ if (app.Environment.IsDevelopment())
             var pending = ctx.Database.GetPendingMigrations();
             if (pending.Any())
             {
-                logger.LogInformation("Applying {Count} pending migrations for {Context}", pending.Count(), ctx.GetType().Name);
+                logger.LogInformation(
+                    "Applying {Count} pending migrations for {Context}",
+                    pending.Count(),
+                    ctx.GetType().Name
+                );
                 ctx.Database.Migrate();
                 logger.LogInformation("Migrations applied to {Context}", ctx.GetType().Name);
             }

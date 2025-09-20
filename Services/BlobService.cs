@@ -4,7 +4,12 @@ using Azure.Storage.Blobs.Models;
 public interface IBlobService
 {
     public Task<List<string>> GetAllDocuments(string connectionString, string containerName);
-    Task UploadDocument(string connectionString, string containerName, string fileName, Stream fileContent);
+    Task UploadDocument(
+        string connectionString,
+        string containerName,
+        string fileName,
+        Stream fileContent
+    );
     Task<Stream> GetDocument(string connectionString, string containerName, string fileName);
     Task<bool> DeleteDocument(string connectionString, string containerName, string fileName);
 }
@@ -29,7 +34,12 @@ public class BlobService : IBlobService
         return blobs;
     }
 
-    public async Task UploadDocument(string connectionString, string containerName, string fileName, Stream fileContent)
+    public async Task UploadDocument(
+        string connectionString,
+        string containerName,
+        string fileName,
+        Stream fileContent
+    )
     {
         var container = GetContainer(connectionString, containerName);
 
@@ -55,7 +65,12 @@ public class BlobService : IBlobService
             await bobclient.UploadAsync(fileContent, overwrite: true);
         }
     }
-    public async Task<Stream> GetDocument(string connectionString, string containerName, string fileName)
+
+    public async Task<Stream> GetDocument(
+        string connectionString,
+        string containerName,
+        string fileName
+    )
     {
         var container = GetContainer(connectionString, containerName);
 
@@ -80,7 +95,11 @@ public class BlobService : IBlobService
         }
     }
 
-    public async Task<bool> DeleteDocument(string connectionString, string containerName, string fileName)
+    public async Task<bool> DeleteDocument(
+        string connectionString,
+        string containerName,
+        string fileName
+    )
     {
         var container = GetContainer(connectionString, containerName);
 
@@ -109,4 +128,3 @@ public class BlobService : IBlobService
         return blobServiceClient.GetBlobContainerClient(containerName);
     }
 }
-

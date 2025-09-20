@@ -5,7 +5,9 @@ using Microsoft.EntityFrameworkCore;
 public class IdentityContext : IdentityDbContext<IdentityUser, IdentityRole, string>
 {
     protected readonly IConfiguration _config;
-    public IdentityContext(DbContextOptions<IdentityContext> options, IConfiguration config) : base(options)
+
+    public IdentityContext(DbContextOptions<IdentityContext> options, IConfiguration config)
+        : base(options)
     {
         _config = config;
     }
@@ -19,4 +21,3 @@ public class IdentityContext : IdentityDbContext<IdentityUser, IdentityRole, str
     public DbSet<RefreshToken> RefreshTokens { get; set; }
     public DbSet<UserProfile> UserProfiles { get; set; }
 }
-

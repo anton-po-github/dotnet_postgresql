@@ -4,11 +4,14 @@ using Microsoft.EntityFrameworkCore;
 public class BaseEntity
 {
     [Key]
-    public Guid Id { get; set; } = Guid.NewGuid();
+    public int Id { get; set; } // Primary Key, auto-increment
+
+    // public Guid Id { get; set; } = Guid.NewGuid();
     public string? OwnerId { get; set; }
 }
 
-public interface IGenericService<T> where T : BaseEntity
+public interface IGenericService<T>
+    where T : BaseEntity
 {
     Task<T> GetByIdAsync(int id);
     Task<IReadOnlyList<T>> ListAllAsync();
@@ -22,8 +25,8 @@ public interface IGenericService<T> where T : BaseEntity
     void Delete(T entity);
 }
 
-
-public class GenericService<T> : IGenericService<T> where T : BaseEntity
+public class GenericService<T> : IGenericService<T>
+    where T : BaseEntity
 {
     public readonly UsersContext _usersContext;
 
@@ -31,6 +34,7 @@ public class GenericService<T> : IGenericService<T> where T : BaseEntity
     {
         _usersContext = usersContext;
     }
+
     public async Task<IReadOnlyList<T>> ListAsync(ISpecifications<T> spec)
     {
         return await ApplySpecification(spec).ToListAsync();
@@ -46,9 +50,13 @@ public class GenericService<T> : IGenericService<T> where T : BaseEntity
         return SpecificationEvaluator<T>.GetQuery(_usersContext.Set<T>().AsQueryable(), spec);
     }
 
-    private class SpecificationEvaluator<TEntity> where TEntity : BaseEntity
+    private class SpecificationEvaluator<TEntity>
+        where TEntity : BaseEntity
     {
-        public static IQueryable<TEntity> GetQuery(IQueryable<TEntity> inputQuery, ISpecifications<TEntity> spec)
+        public static IQueryable<TEntity> GetQuery(
+            IQueryable<TEntity> inputQuery,
+            ISpecifications<TEntity> spec
+        )
         {
             var query = inputQuery;
 
@@ -72,7 +80,10 @@ public class GenericService<T> : IGenericService<T> where T : BaseEntity
                 query = query.Skip(spec.Skip).Take(spec.Take);
             }
 
-            query = spec.ListIncludesExprFun.Aggregate(query, (current, include) => current.Include(include));
+            query = spec.ListIncludesExprFun.Aggregate(
+                query,
+                (current, include) => current.Include(include)
+            );
 
             return query;
         }
@@ -108,8 +119,3 @@ public class GenericService<T> : IGenericService<T> where T : BaseEntity
         throw new NotImplementedException();
     }
 }
-
-
-
-
-
