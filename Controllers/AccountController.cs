@@ -17,6 +17,7 @@ public class AccountController : ControllerBase
     private readonly TokenService _tokenService;
     private readonly EmailService _emailService;
     private readonly IdentityContext _identityContext;
+
     public AccountController(
         UserManager<IdentityUser> userManager,
         SignInManager<IdentityUser> signInManager,
@@ -25,7 +26,7 @@ public class AccountController : ControllerBase
         EmailService emailService,
         ILogger<AccountController> logger,
         IMapper mapper
-        )
+    )
     {
         _identityContext = identityContext;
         _tokenService = tokenService;
@@ -48,7 +49,8 @@ public class AccountController : ControllerBase
         var userId = User.FindFirstValue(JwtRegisteredClaimNames.Sub);
 
         if (string.IsNullOrEmpty(userId))
-            return Unauthorized(new { message = "User not found or token is invalid" }); ;
+            return Unauthorized(new { message = "User not found or token is invalid" });
+        ;
 
         var user = await _userManager.FindByIdAsync(userId);
 
@@ -60,7 +62,7 @@ public class AccountController : ControllerBase
             Email = user.Email,
             UserName = user.UserName,
             IdentityUserId = userId,
-            Role = await _userManager.GetRolesAsync(user)
+            Role = await _userManager.GetRolesAsync(user),
         };
     }
 
@@ -79,32 +81,39 @@ public class AccountController : ControllerBase
     [HttpPost("register")]
     public async Task<ActionResult<UserDto>> Register(RegisterDto registerDto)
     {
-        var user = new IdentityUser
-        {
-            Email = registerDto.Email,
-            UserName = registerDto.UserName
-        };
+        var user = new IdentityUser { Email = registerDto.Email, UserName = registerDto.UserName };
 
         if (_userManager.Users.Any(x => x.Email == registerDto.Email))
-            throw new AppException("User with the email '" + registerDto.Email + "' already exists");
+            throw new AppException(
+                "User with the email '" + registerDto.Email + "' already exists"
+            );
 
         if (_userManager.Users.Any(x => x.UserName == registerDto.UserName))
-            throw new AppException("User with the UserName '" + registerDto.UserName + "' already exists");
+            throw new AppException(
+                "User with the UserName '" + registerDto.UserName + "' already exists"
+            );
 
         var result = await _userManager.CreateAsync(user, registerDto.Password);
-        if (!result.Succeeded) return BadRequest(new ApiResponse(400));
+        if (!result.Succeeded)
+            return BadRequest(new ApiResponse(400));
 
         var addUserToRoleResult = await _userManager.AddToRoleAsync(user, "User");
-        if (!addUserToRoleResult.Succeeded) throw new AppException($"Create user succeeded but could not add user to role {addUserToRoleResult?.Errors?.First()?.Description}");
+        if (!addUserToRoleResult.Succeeded)
+            throw new AppException(
+                $"Create user succeeded but could not add user to role {addUserToRoleResult?.Errors?.First()?.Description}"
+            );
 
         var confirmLink = $"http://127.0.0.1:8080/api/account/confirm-email?email={user.Email}";
 
-        var textEmail = @"
+        var textEmail =
+            @"
         Hello.
 
         Please confirm your email address by clicking the link below
 
-        " + confirmLink + @"
+        "
+            + confirmLink
+            + @"
 
         Thank You !
         Regards
@@ -120,7 +129,7 @@ public class AccountController : ControllerBase
             Email = user.Email,
             IdentityUserId = user.Id,
             UserName = user.UserName,
-            Role = await _userManager.GetRolesAsync(user)
+            Role = await _userManager.GetRolesAsync(user),
         };
     }
 
@@ -133,7 +142,8 @@ public class AccountController : ControllerBase
             return Unauthorized();
 
         var result = await _signInManager.CheckPasswordSignInAsync(user, loginDto.Password, false);
-        if (!result.Succeeded) return Unauthorized(new ApiResponse(401));
+        if (!result.Succeeded)
+            return Unauthorized(new ApiResponse(401));
 
         /* var isEmailConfirmed = await _userManager.IsEmailConfirmedAsync(user);
         if (!isEmailConfirmed) throw new AppException("Email is not Confirmed"); */
@@ -153,14 +163,18 @@ public class AccountController : ControllerBase
             Email = user.Email,
             IdentityUserId = user.Id,
             UserName = user.UserName,
-            Role = await _userManager.GetRolesAsync(user)
+            Role = await _userManager.GetRolesAsync(user),
         };
     }
 
     [HttpPost("refresh")]
     public async Task<ActionResult<UserDto>> Refresh(RefreshRequestDto refreshRequestDto)
     {
-        _logger.LogInformation("Refresh: AccessToken={token}, RefreshToken={rt}", refreshRequestDto.AccessToken, refreshRequestDto.RefreshToken);
+        _logger.LogInformation(
+            "Refresh: AccessToken={token}, RefreshToken={rt}",
+            refreshRequestDto.AccessToken,
+            refreshRequestDto.RefreshToken
+        );
 
         // 1) получаем principal из просроченного access
         var principal = _tokenService.GetPrincipalFromExpiredToken(refreshRequestDto.AccessToken);
@@ -174,14 +188,17 @@ public class AccountController : ControllerBase
         _logger.LogInformation("Пользователь из токена: {userId}", userId);
 
         var user = await _userManager.FindByIdAsync(userId!);
-        if (user == null) return Unauthorized();
+        if (user == null)
+            return Unauthorized();
 
-        var storedToken = await _identityContext.RefreshTokens
-        .SingleOrDefaultAsync(rt => rt.Token == refreshRequestDto.RefreshToken);
+        var storedToken = await _identityContext.RefreshTokens.SingleOrDefaultAsync(rt =>
+            rt.Token == refreshRequestDto.RefreshToken
+        );
 
         _logger.LogInformation("Найден RefreshToken в БД: {found}", storedToken != null);
 
-        if (storedToken == null) return Unauthorized();
+        if (storedToken == null)
+            return Unauthorized();
 
         // 3) отзываем старый и сохраняем новый
         storedToken.Revoked = DateTime.UtcNow;
@@ -204,7 +221,7 @@ public class AccountController : ControllerBase
             Email = user.Email,
             IdentityUserId = user.Id,
             UserName = user.UserName,
-            Role = await _userManager.GetRolesAsync(user)
+            Role = await _userManager.GetRolesAsync(user),
         };
     }
 
@@ -212,7 +229,8 @@ public class AccountController : ControllerBase
     public async Task<IResult> ConfirmEmail([FromQuery] string email)
     {
         var user = await _userManager.FindByEmailAsync(email);
-        if (user is null) return Results.NotFound("User not found.");
+        if (user is null)
+            return Results.NotFound("User not found.");
 
         user.EmailConfirmed = true;
 
@@ -225,22 +243,18 @@ public class AccountController : ControllerBase
     public async Task<IdentityResult> DeleteUser(string id)
     {
         var user = await _userManager.FindByIdAsync(id);
-        if (user == null) throw new AppException("User not found.");
+        if (user == null)
+            throw new AppException("User not found.");
 
         var result = await _userManager.DeleteAsync(user);
 
         return result;
-
     }
 
     private string GetClientIp()
     {
         // HttpContext and Connection should be non-null when handling a request in ControllerBase
         // RemoteIpAddress may be null (e.g., non-TCP transports); use null-conditional and fallback
-        return HttpContext?
-            .Connection?
-            .RemoteIpAddress?
-            .ToString()
-            ?? "unknown";
+        return HttpContext?.Connection?.RemoteIpAddress?.ToString() ?? "unknown";
     }
 }

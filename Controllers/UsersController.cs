@@ -4,7 +4,6 @@ using AutoMapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
-
 [ApiController]
 [Route("api/[controller]")]
 public class UsersController : ControllerBase
@@ -16,7 +15,8 @@ public class UsersController : ControllerBase
     public UsersController(
         UserService userService,
         IGenericService<User> usersGenericService,
-        IMapper mapper)
+        IMapper mapper
+    )
     {
         _usersGenericService = usersGenericService;
         _userService = userService;
@@ -25,7 +25,9 @@ public class UsersController : ControllerBase
 
     [Authorize(Roles = "User")]
     [HttpGet]
-    public async Task<ActionResult<Pagination<User>>> GetUsers([FromQuery] UserSpecParams userSpecParams)
+    public async Task<ActionResult<Pagination<User>>> GetUsers(
+        [FromQuery] UserSpecParams userSpecParams
+    )
     {
         var spec = new UsersParamsSpec(userSpecParams);
 
@@ -35,9 +37,15 @@ public class UsersController : ControllerBase
 
         var users = await _usersGenericService.ListAsync(spec);
 
-        return Ok(new Pagination<User>(userSpecParams.PageIndex, userSpecParams.PageSize, countItems, users));
+        return Ok(
+            new Pagination<User>(
+                userSpecParams.PageIndex,
+                userSpecParams.PageSize,
+                countItems,
+                users
+            )
+        );
     }
-
 
     [HttpGet("{id}")]
     public IActionResult GetById(Guid id)
@@ -49,10 +57,12 @@ public class UsersController : ControllerBase
     [HttpPost]
     public IActionResult Create([FromForm] AddUpdateUser addUser)
     {
-        var userId = User.FindFirstValue(JwtRegisteredClaimNames.Sub);
-        if (userId == null) throw new AppException("UserId not found.");
+        var userId = User.GetIntUserId();
 
-        _userService.Create(addUser, userId);
+        if (!userId.HasValue)
+            throw new AppException("UserId not found or not a valid integer.");
+
+        _userService.Create(addUser, userId.Value);
 
         return Ok(new { message = "User created" });
     }
@@ -60,7 +70,6 @@ public class UsersController : ControllerBase
     [HttpPut("{id}")]
     public IActionResult Update(Guid id, [FromForm] AddUpdateUser updateUser)
     {
-
         _userService.Update(id, updateUser);
 
         return Ok(new { message = "User updated" });

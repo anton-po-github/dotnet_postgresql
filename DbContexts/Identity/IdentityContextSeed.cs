@@ -6,16 +6,9 @@ public class IdentityContextSeed
     {
         if (!userManager.Users.Any())
         {
-            var user = new IdentityUser
-            {
-                Email = "bob@test.com",
-                UserName = "Bob",
-
-            };
+            var user = new IdentityUser { Email = "bob@test.com", UserName = "Bob" };
 
             await userManager.CreateAsync(user, "Pa$$w0rd");
         }
     }
 }
-
-

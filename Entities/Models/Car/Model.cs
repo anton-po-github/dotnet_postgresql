@@ -8,7 +8,7 @@ namespace dotnet_postgresql.Entities.Models.Car
         public int MakeId { get; set; }
 
         [ForeignKey("MakeId")]
-        public virtual Make Make { get; set; }
+        public virtual required Make Make { get; set; }
 
         public virtual ICollection<Car>? Cars { get; set; }
     }

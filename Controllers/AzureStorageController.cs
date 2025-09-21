@@ -7,6 +7,7 @@ public class AzureStorageController : Controller
     private readonly IBlobService _blobService;
     private readonly string _connectionString = "";
     private readonly string _container = "";
+
     public AzureStorageController(IBlobService blobService, IConfiguration config)
     {
         _blobService = blobService;
@@ -30,7 +31,12 @@ public class AzureStorageController : Controller
         {
             Stream stream = asset.OpenReadStream();
 
-            await _blobService.UploadDocument(_connectionString, _container, asset.FileName, stream);
+            await _blobService.UploadDocument(
+                _connectionString,
+                _container,
+                asset.FileName,
+                stream
+            );
 
             return true;
         }

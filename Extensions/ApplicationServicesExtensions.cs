@@ -2,8 +2,16 @@ using Microsoft.EntityFrameworkCore;
 
 public static class ApplicationServicesExtensions
 {
-    public static IServiceCollection AddApplicationServices(this IServiceCollection services, IConfiguration config)
+    public static IServiceCollection AddApplicationServices(
+        this IServiceCollection services,
+        IConfiguration config
+    )
     {
+        services.AddDbContext<CarsContext>(x =>
+        {
+            x.UseNpgsql(config.GetConnectionString("CarsConnection"));
+        });
+
         services.AddDbContext<IdentityContext>(x =>
         {
             x.UseNpgsql(config.GetConnectionString("IdentityConnection"));
@@ -40,4 +48,3 @@ public static class ApplicationServicesExtensions
         return services;
     }
 }
-

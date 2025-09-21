@@ -10,7 +10,8 @@ public class UserService
     public UserService(
         UsersContext userContext,
         UserManager<IdentityUser> userManager,
-        IMapper mapper)
+        IMapper mapper
+    )
     {
         _userContext = userContext;
         _mapper = mapper;
@@ -26,7 +27,7 @@ public class UserService
         return getUser(id);
     }
 
-    public void Create(AddUpdateUser addUser, string userId)
+    public void Create(AddUpdateUser addUser, int userId)
     {
         // validate
         if (_userContext.Users.Any(x => x.Email == addUser.Email))
@@ -42,14 +43,10 @@ public class UserService
             PhotoType = addUser.PhotoType,
             Phone = "937-99-92",
             OwnerId = userId,
-            PhotoUrl = ConvertIFormFileToByteArray(addUser.File)
+            PhotoUrl = ConvertIFormFileToByteArray(addUser.File),
         };
 
-        var userDetails = new UsersDetails
-        {
-            Role = "User",
-            Salary = 1000
-        };
+        var userDetails = new UsersDetails { Role = "User", Salary = 1000 };
 
         user.Details = JsonSerializer.Serialize(userDetails);
         // save user
@@ -63,7 +60,10 @@ public class UserService
         var user = getUser(id);
 
         // validate
-        if (updateUser.Email != user.Email && _userContext.Users.Any(x => x.Email == updateUser.Email))
+        if (
+            updateUser.Email != user.Email
+            && _userContext.Users.Any(x => x.Email == updateUser.Email)
+        )
             throw new AppException("User with the email '" + updateUser.Email + "' already exists");
 
         user.FirstName = updateUser.FirstName;
@@ -90,7 +90,8 @@ public class UserService
     private byte[] ConvertIFormFileToByteArray(IFormFile? file)
     {
         if (file == null || file.Length == 0)
-            throw new AppException("File not found."); ;
+            throw new AppException("File not found.");
+        ;
 
         using (var memoryStream = new MemoryStream())
         {
@@ -105,7 +106,8 @@ public class UserService
     {
         var user = _userContext.Users.Find(id);
 
-        if (user == null) throw new System.Collections.Generic.KeyNotFoundException("User not found");
+        if (user == null)
+            throw new System.Collections.Generic.KeyNotFoundException("User not found");
 
         return user;
     }

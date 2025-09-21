@@ -7,17 +7,17 @@ namespace dotnet_postgresql.Entities.Models.Car
         public int UserId { get; set; }
 
         [ForeignKey("UserId")]
-        public virtual User User { get; set; }
+        public User? User { get; set; }
 
         public int MakeId { get; set; }
 
         [ForeignKey("MakeId")]
-        public virtual Make Make { get; set; }
+        public virtual Make? Make { get; set; }
 
         public int ModelId { get; set; }
 
         [ForeignKey("ModelId")]
-        public virtual Model Model { get; set; }
+        public virtual Model? Model { get; set; }
 
         public int Year { get; set; }
 
@@ -26,7 +26,7 @@ namespace dotnet_postgresql.Entities.Models.Car
         public int BodyTypeId { get; set; }
 
         [ForeignKey("BodyTypeId")]
-        public virtual BodyType BodyType { get; set; }
+        public virtual BodyType? BodyType { get; set; }
 
         public virtual ICollection<Picture>? Pictures { get; set; } = new List<Picture>();
     }

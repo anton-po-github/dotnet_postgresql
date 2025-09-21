@@ -8,6 +8,7 @@ public class ChatMessageContext : DbContext
     {
         _config = configuration;
     }
+
     protected override void OnConfiguring(DbContextOptionsBuilder options)
     {
         options.UseNpgsql(_config.GetConnectionString("ChatMessageConnection"));
@@ -15,5 +16,3 @@ public class ChatMessageContext : DbContext
 
     public DbSet<ChatMessage> ChatMessages { get; set; } = null!;
 }
-
-

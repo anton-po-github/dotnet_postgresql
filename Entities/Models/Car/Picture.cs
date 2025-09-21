@@ -7,7 +7,7 @@ namespace dotnet_postgresql.Entities.Models.Car
         public int CarId { get; set; }
 
         [ForeignKey("CarId")]
-        public virtual Car Car { get; set; }
+        public virtual Car? Car { get; set; }
 
         public string Path { get; set; } = "";
     }
