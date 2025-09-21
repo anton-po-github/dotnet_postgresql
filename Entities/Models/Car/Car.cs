@@ -27,5 +27,7 @@ namespace dotnet_postgresql.Entities.Models.Car
 
         [ForeignKey("BodyTypeId")]
         public virtual BodyType BodyType { get; set; }
+
+        public virtual ICollection<Picture>? Pictures { get; set; } = new List<Picture>();
     }
 }

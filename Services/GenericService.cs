@@ -7,7 +7,7 @@ public class BaseEntity
     public int Id { get; set; } // Primary Key, auto-increment
 
     // public Guid Id { get; set; } = Guid.NewGuid();
-    public string? OwnerId { get; set; }
+    public int? OwnerId { get; set; }
 }
 
 public interface IGenericService<T>

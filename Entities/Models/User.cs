@@ -1,5 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using dotnet_postgresql.Entities.Models.Car;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 
@@ -11,6 +12,8 @@ public class User : BaseEntity
     public string? Email { get; set; }
     public Byte[]? PhotoUrl { get; set; }
     public string? PhotoType { get; set; }
+
+    public virtual ICollection<Car> Car { get; set; } = new List<Car>();
 
     [Column(TypeName = "jsonb")]
     public string? Details { get; set; }
